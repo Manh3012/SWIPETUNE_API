@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessObject", "BusinessObject\BusinessObject.csproj", "{ABF455F2-FE2D-4B43-AEC7-9FF5F93FD87E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{85ACEC9B-C9BB-4723-883C-97C5385980FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository", "Repository\Repository.csproj", "{7AEDD6AB-CF71-4F7C-A7EB-36FC635780EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SWIPTETUNE_API", "SWIPTETUNE_API\SWIPTETUNE_API.csproj", "{8D752850-9D29-4A32-9AF4-57CC2B7730ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ABF455F2-FE2D-4B43-AEC7-9FF5F93FD87E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABF455F2-FE2D-4B43-AEC7-9FF5F93FD87E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABF455F2-FE2D-4B43-AEC7-9FF5F93FD87E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABF455F2-FE2D-4B43-AEC7-9FF5F93FD87E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85ACEC9B-C9BB-4723-883C-97C5385980FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85ACEC9B-C9BB-4723-883C-97C5385980FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85ACEC9B-C9BB-4723-883C-97C5385980FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85ACEC9B-C9BB-4723-883C-97C5385980FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AEDD6AB-CF71-4F7C-A7EB-36FC635780EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AEDD6AB-CF71-4F7C-A7EB-36FC635780EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AEDD6AB-CF71-4F7C-A7EB-36FC635780EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AEDD6AB-CF71-4F7C-A7EB-36FC635780EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D752850-9D29-4A32-9AF4-57CC2B7730ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D752850-9D29-4A32-9AF4-57CC2B7730ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D752850-9D29-4A32-9AF4-57CC2B7730ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D752850-9D29-4A32-9AF4-57CC2B7730ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EF944441-6D4A-4F6B-A574-31F65B6469F6}
+	EndGlobalSection
+EndGlobal
