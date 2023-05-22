@@ -5,8 +5,8 @@ namespace BusinessObject.Models
     public class Song
     {
         [Key]
-        public Guid SongId { get; set; }
-        public Guid ArtisId { get; set; }
+        public string SongId { get; set; }
+        public string ArtisId { get; set; }
         public int? GenreId { get; set; }
         public string? Song_title { get; set; }
         public TimeSpan? Duration { get; set; }

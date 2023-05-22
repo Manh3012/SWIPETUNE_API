@@ -10,7 +10,7 @@ namespace BusinessObject.Models
     public class Artist
     {
         [Key]
-        public Guid ArtistId { get; set; }
+        public string ArtistId { get; set; }
 
         public string Name { get; set; }
 

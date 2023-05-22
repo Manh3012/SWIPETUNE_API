@@ -10,7 +10,7 @@ namespace BusinessObject.Models
     public class Playlist
     {
         [Key]
-        public Guid PlaylistId { get; set; }
+        public string PlaylistId { get; set; }
         public Guid AccountId { get; set; }
 
         [Required] public string? Name { get; set; }

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BusinessObject.Migrations
 {
-    public partial class _3 : Migration
+    public partial class _12 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -15,8 +15,9 @@ namespace BusinessObject.Migrations
                 {
                     AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SaltPassword = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DOB = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -24,6 +25,7 @@ namespace BusinessObject.Migrations
                     Verified_At = table.Column<DateTime>(type: "datetime2", nullable: false),
                     isDeleted = table.Column<bool>(type: "bit", nullable: false),
                     Created_At = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    accessToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -35,7 +37,7 @@ namespace BusinessObject.Migrations
                 name: "Artists",
                 columns: table => new
                 {
-                    ArtistId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ArtistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     artis_genres = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     artist_img_url = table.Column<string>(type: "nvarchar(max)", nullable: false)
@@ -65,7 +67,7 @@ namespace BusinessObject.Migrations
                 name: "Playlists",
                 columns: table => new
                 {
-                    PlaylistId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PlaylistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -87,14 +89,14 @@ namespace BusinessObject.Migrations
                 name: "Songs",
                 columns: table => new
                 {
-                    SongId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ArtisId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SongId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ArtisId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     GenreId = table.Column<int>(type: "int", nullable: true),
                     Song_title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Duration = table.Column<TimeSpan>(type: "time", nullable: true),
                     ReleaseDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     song_img_url = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ArtistId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    ArtistId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -138,7 +140,7 @@ namespace BusinessObject.Migrations
                 {
                     SyncedPlaylistId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PlaylistId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PlaylistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     spotify_playlist_ID = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     last_synced_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -165,7 +167,7 @@ namespace BusinessObject.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
-                    SongId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    SongId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -181,8 +183,8 @@ namespace BusinessObject.Migrations
                 name: "PlaylistSongs",
                 columns: table => new
                 {
-                    PlaylistId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SongId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PlaylistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SongId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     position = table.Column<int>(type: "int", nullable: false),
                     added_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },

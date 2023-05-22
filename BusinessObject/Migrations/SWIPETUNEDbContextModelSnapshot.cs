@@ -38,7 +38,6 @@ namespace BusinessObject.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
@@ -48,10 +47,12 @@ namespace BusinessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SaltPassword")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Status")
@@ -59,6 +60,9 @@ namespace BusinessObject.Migrations
 
                     b.Property<DateTime>("Verified_At")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("accessToken")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
@@ -97,9 +101,8 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Artist", b =>
                 {
-                    b.Property<Guid>("ArtistId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -134,8 +137,8 @@ namespace BusinessObject.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid?>("SongId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("SongId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("GenreId");
 
@@ -171,9 +174,8 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Playlist", b =>
                 {
-                    b.Property<Guid>("PlaylistId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("PlaylistId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<Guid>("AccountId")
                         .HasColumnType("uniqueidentifier");
@@ -200,11 +202,13 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.PlaylistSong", b =>
                 {
-                    b.Property<Guid>("PlaylistId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("PlaylistId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("SongId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("SongId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("added_at")
                         .HasColumnType("datetime2");
@@ -221,15 +225,15 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Song", b =>
                 {
-                    b.Property<Guid>("SongId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("SongId")
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("ArtisId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ArtisId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("ArtistId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("time");
@@ -288,8 +292,9 @@ namespace BusinessObject.Migrations
                     b.Property<Guid>("AccountId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("PlaylistId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("PlaylistId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("last_synced_at")
                         .HasColumnType("datetime2");

@@ -13,10 +13,9 @@ namespace BusinessObject.Models
         [Key]
         public Guid AccountId { get; set; }
         public string? FullName { get; set; }
-        [Required]
-        public string Email { get; set; }
-        [Required]
-        public string Password { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+        public string? SaltPassword { get; set; }
         public DateTime DOB { get; set; }
         public string? Gender { get;set; }
         public string? PhoneNumber { get; set; }
@@ -24,6 +23,8 @@ namespace BusinessObject.Models
         public DateTime Verified_At { get; set; }
         public bool isDeleted { get; set; }
         public DateTime Created_At { get; set; }
+        public string? accessToken { get; set; }
+
         public bool Status { get; set; }
 
         public virtual ICollection<Playlist>? Playlists { get; set;

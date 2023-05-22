@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessObject", "BusinessObject\BusinessObject.csproj", "{ABF455F2-FE2D-4B43-AEC7-9FF5F93FD87E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessObject", "BusinessObject\BusinessObject.csproj", "{ABF455F2-FE2D-4B43-AEC7-9FF5F93FD87E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{85ACEC9B-C9BB-4723-883C-97C5385980FD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataAccess", "DataAccess\DataAccess.csproj", "{85ACEC9B-C9BB-4723-883C-97C5385980FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository", "Repository\Repository.csproj", "{7AEDD6AB-CF71-4F7C-A7EB-36FC635780EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Repository", "Repository\Repository.csproj", "{7AEDD6AB-CF71-4F7C-A7EB-36FC635780EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SWIPTETUNE_API", "SWIPTETUNE_API\SWIPTETUNE_API.csproj", "{8D752850-9D29-4A32-9AF4-57CC2B7730ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SWIPTETUNE_API", "SWIPTETUNE_API\SWIPTETUNE_API.csproj", "{8D752850-9D29-4A32-9AF4-57CC2B7730ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SWIPE_TUNE_CLIENT", "SWIPE_TUNE_CLIENT\SWIPE_TUNE_CLIENT.csproj", "{7CE82715-ADAE-44BC-AA4F-671B095E0C67}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{8D752850-9D29-4A32-9AF4-57CC2B7730ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D752850-9D29-4A32-9AF4-57CC2B7730ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D752850-9D29-4A32-9AF4-57CC2B7730ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CE82715-ADAE-44BC-AA4F-671B095E0C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CE82715-ADAE-44BC-AA4F-671B095E0C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CE82715-ADAE-44BC-AA4F-671B095E0C67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CE82715-ADAE-44BC-AA4F-671B095E0C67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
