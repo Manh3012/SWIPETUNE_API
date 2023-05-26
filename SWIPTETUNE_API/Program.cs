@@ -1,5 +1,9 @@
 using System.Text;
 using System.Net.Http;
+using Repository.Repo;
+using DataAccess.Service;
+using DataAccess.Interface;
+using Repository.Interface;
 using System.Security.Claims;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
@@ -41,7 +45,15 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim(ClaimTypes.Name, "VUVANMANH");
     });
 });
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<ISpotifyAccountService, SpotifyAccountService>(options =>
+{
+    options.BaseAddress = new Uri("https://accounts.spotify.com/api/");
+});
+builder.Services.AddHttpClient<ISpotifyService, SpotifyService>(options =>
+{
+    options.BaseAddress = new Uri("https://api.spotify.com/v1/");
+    options.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -74,7 +86,7 @@ builder.Services.AddSwaggerGen(options =>
             }
         });
 });
-
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

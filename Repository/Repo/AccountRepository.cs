@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using DataAccess.DAO;
+using BusinessObject;
 using Repository.Interface;
 using BusinessObject.Models;
 using System.Threading.Tasks;
@@ -12,14 +13,20 @@ namespace Repository.Repo
 {
     public class AccountRepository : IAccountRepository
     {
+        private readonly AccountDAO accountDAO;
 
-        public Guid RegisterAccount(RegisterAccountModel account)=>AccountDAO.RegisterAccount(account);
-        public Account Login(string email, string password)=> AccountDAO.Login(email, password);
+        public AccountRepository()
+        {
+            accountDAO = new AccountDAO();
+        }
 
-        public void UpdateAccount(Guid AccountId,UpdateAccountModel account)=>AccountDAO.UpdateAccount(AccountId,account);
+        public Guid RegisterAccount(RegisterAccountModel account)=> accountDAO.RegisterAccount(account);
+        public Account Login(string email, string password)=> accountDAO.Login(email, password);
 
-        public void DeleteAccount(Guid AccountId)=>AccountDAO.DeleteAccount(AccountId);
-        public void AddToken(Guid AccountId, string token) => AccountDAO.AddToken(AccountId, token);
-        public void LogOut(Guid AccountId)=>AccountDAO.LogOut(AccountId);
+        public void UpdateAccount(Guid AccountId,UpdateAccountModel account)=>accountDAO.UpdateAccount(AccountId,account);
+
+        public void DeleteAccount(Guid AccountId)=>accountDAO.DeleteAccount(AccountId);
+        public void AddToken(Guid AccountId, string token) => accountDAO.AddToken(AccountId, token);
+        public void LogOut(Guid AccountId)=>accountDAO.LogOut(AccountId);
     }
 }

@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BusinessObject.Models
 {
-    public class Account
+    public class Account 
     {
         [Key]
         public Guid AccountId { get; set; }

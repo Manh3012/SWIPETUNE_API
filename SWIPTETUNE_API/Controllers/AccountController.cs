@@ -21,9 +21,10 @@ namespace SWIPTETUNE_API.Controllers
         private IAccountRepository repository = new AccountRepository();
         private readonly IConfiguration _configuration;
 
-        public AccountController(IConfiguration configuration)
+        public AccountController(IConfiguration configuration,IAccountRepository accountRepository)
         {
             _configuration = configuration;
+            repository = accountRepository;
         }
 
 
@@ -55,7 +56,7 @@ namespace SWIPTETUNE_API.Controllers
         [AllowAnonymous]
         public IActionResult Login(string email,string password) {
         
-                var account = repository.Login(email, password);
+                Account account = repository.Login(email, password);
             if(account==null)
             {
                 return NotFound();

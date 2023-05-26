@@ -14,29 +14,32 @@ namespace DataAccess.DAO
 {
     public class AccountDAO
     {
-        public static List<Account> GetAccounts() { 
+        private readonly SWIPETUNEDbContext context = new SWIPETUNEDbContext();
+
+        public AccountDAO()
+        {
+        }
+
+        public  List<Account> GetAccounts() { 
             var list = new List<Account>();
             try
             {
-                using (var context= new SWIPETUNEDbContext())
-                {
+               
                     list = context.Accounts.ToList();
 
-                }
+                
             }catch(Exception ex)
             {
                 throw new Exception(ex.Message);
             }
             return list;
         }
-        public static Guid RegisterAccount(RegisterAccountModel account)
+        public  Guid RegisterAccount(RegisterAccountModel account)
         {
             var createAccount =new Account();
             try
             {
-                using (var context = new SWIPETUNEDbContext())
-                {
-                    createAccount.AccountId = Guid.NewGuid();
+                createAccount.AccountId = Guid.NewGuid();
                     createAccount.Email= account.Email;
                     createAccount.Password= account.Password;
                     // Set default values for some properties
@@ -53,37 +56,33 @@ namespace DataAccess.DAO
                     createAccount.Password = Convert.ToBase64String(hashedPassword);
                     createAccount.SaltPassword = Convert.ToBase64String(salt);
 
-                    if (context.Accounts.SingleOrDefault(x=>x.Email == account.Email) != null)
+                    if (context.Accounts.SingleOrDefault(x=>x.Email == createAccount.Email)!=null)
                     {
                         throw new Exception("Email exists");
                     }
                     context.Accounts.Add(createAccount);
                     context.SaveChanges();
-                }
+                
             }catch(Exception ex)
             {
                 throw new Exception(ex.Message);
             }
             return createAccount.AccountId;
         }
-        public static void AddToken(Guid AccountId,string token)
+        public  void AddToken(Guid AccountId,string token)
         {
             var account = GetAccountById(AccountId);
             if (account != null) { 
-            using (var context=new SWIPETUNEDbContext())
-                {
+                
                     account.accessToken = token;
                     context.Entry<Account>(account).State=EntityState.Modified;
                     context.SaveChanges();
-                }
             }
         }
-        public static Account Login(string email, string password)
+        public  Account Login(string email, string password)
         {
             // Find the account with the given email
-            using (var context = new SWIPETUNEDbContext())
-            {
-                Account? account = context.Accounts.FirstOrDefault(a => a.Email == email);
+                Account account = context.Accounts.FirstOrDefault(a => a.Email == email);
 
                 // Check if account exists and the password matches
                 if (account != null)
@@ -96,45 +95,36 @@ namespace DataAccess.DAO
                         return account; // Return the account if login is successful
                     }
                 }
-            }
 
             return null; // Return null if login fails
         }
-        public static Account GetAccountById(Guid AccountId)
+        public  Account GetAccountById(Guid AccountId)
         {
             Account? existingAccount = new Account();
-            using(var context= new SWIPETUNEDbContext())
-            {
                 existingAccount = context.Accounts.SingleOrDefault(x => x.AccountId == AccountId);
                 if(existingAccount != null)
                 {
                     return existingAccount;
                 }
                 return null;
-            }
         }
-        public static void LogOut(Guid AccountId)
+        public void LogOut(Guid AccountId)
         {
             var account = GetAccountById(AccountId);
             if(account != null)
             {
-                using(var context = new SWIPETUNEDbContext())
-                {
                     account.accessToken = null;
                     context.Entry<Account>(account).State=EntityState.Modified;
                     context.SaveChanges();
-                }
             }
         }
 
-        public static void UpdateAccount(Guid AccountId,UpdateAccountModel account)
+        public  void UpdateAccount(Guid AccountId,UpdateAccountModel account)
         {
             var exist = GetAccountById(AccountId);
             if (exist == null) {
                 throw new Exception("No account to be updated");
             }
-            using (var context= new SWIPETUNEDbContext())
-            {
                 exist.FullName = account.FullName;
                 exist.Gender = account.Gender;
                 exist.DOB = account.DOB;
@@ -144,9 +134,9 @@ namespace DataAccess.DAO
                 context.Entry<Account>(exist).State = EntityState.Modified;
                 context.SaveChanges();
             }
-        }
+        
 
-        private static byte[] GenerateSalt()
+        private  byte[] GenerateSalt()
         {
             byte[] salt = new byte[16];
 
@@ -157,18 +147,15 @@ namespace DataAccess.DAO
 
             return salt;
         }
-        public static void DeleteAccount(Guid AccountId)
+        public  void DeleteAccount(Guid AccountId)
         {
             var account = GetAccountById(AccountId);
             if (account != null)
             {
                 try
                 {
-                    using(var context=new SWIPETUNEDbContext())
-                    {
                         context.Accounts.Remove(account);
                         context.SaveChanges();
-                    }
                 }catch(Exception ex)
                 {
                     throw new Exception(ex.Message);
@@ -176,14 +163,14 @@ namespace DataAccess.DAO
             }
         }
 
-        private static byte[] HashPassword(string password, byte[] salt)
+        private  byte[] HashPassword(string password, byte[] salt)
         {
             using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000))
             {
                 return pbkdf2.GetBytes(20); // 20 is the length of the hashed password
             }
         }
-        private static bool VerifyPassword(string password, string hashedPassword, string salt)
+        private  bool VerifyPassword(string password, string hashedPassword, string salt)
         {
             byte[] saltBytes = Convert.FromBase64String(salt);
             byte[] hashedPasswordBytes = Convert.FromBase64String(hashedPassword);

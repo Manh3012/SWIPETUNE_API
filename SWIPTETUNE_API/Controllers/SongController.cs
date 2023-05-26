@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using System.Diagnostics;
+using DataAccess.Interface;
 using BusinessObject.Models;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
+using BusinessObject.Sub_Model;
 using Microsoft.AspNetCore.Authorization;
 
 namespace SWIPTETUNE_API.Controllers
@@ -11,75 +13,60 @@ namespace SWIPTETUNE_API.Controllers
     [ApiController]
     public class SongController : ControllerBase
     {
+        private readonly ISpotifyAccountService spotifyAccountService;
+        private readonly ISpotifyService spotifyService;
+
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
-        public SongController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public SongController(IHttpClientFactory httpClientFactory, IConfiguration configuration,ISpotifyAccountService spotifyAccountService,ISpotifyService spotifyService)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            this.spotifyAccountService = spotifyAccountService;
+            this.spotifyService = spotifyService;
         }
 
         [HttpGet("token")]
-        public async Task<IActionResult> GetAccessToken()
+        public async Task<string> GetAccessToken()
         {
-            var client = _httpClientFactory.CreateClient();
-
-            var clientId = _configuration.GetValue<string>("SpotifyApi:ClientId");
-            var clientSecret = _configuration.GetValue<string>("SpotifyApi:ClientSecret");
-
-            var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
-
-            var requestBody = new Dictionary<string, string>
-        {
-            { "grant_type", "client_credentials" }
-        };
-
-            var requestContent = new FormUrlEncodedContent(requestBody);
-            tokenRequest.Headers.Authorization = new AuthenticationHeaderValue(
-                "Basic",
-                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}"))
-            );
-            tokenRequest.Content = requestContent;
-
-            var response = await client.SendAsync(tokenRequest);
-
-
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            return Ok(new
+            var content = "";
+            try
             {
-                content = content
-            });
-        }
-        [HttpGet("tracks/{trackId}")]
-        public async Task<IActionResult> GetTrack(string trackId, string accessToken)
-        {
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            var trackRequest = new HttpRequestMessage(HttpMethod.Get, $"https://api.spotify.com/v1/tracks/{trackId}");
-            var trackResponse = await client.SendAsync(trackRequest);
-
-            if (!trackResponse.IsSuccessStatusCode)
+                var clientId = _configuration.GetValue<string>("SpotifyApi:ClientId");
+                var clientSecret = _configuration.GetValue<string>("SpotifyApi:ClientSecret");
+                content = await spotifyAccountService.GetToken(clientId, clientSecret);
+            }catch (Exception ex)
             {
-                return BadRequest("Failed to retrieve track information.");
+                throw new Exception(ex.Message);
             }
 
-            var trackContent = await trackResponse.Content.ReadAsStringAsync();
-            var filePath = "C:\\Users\\Admin\\OneDrive\\Desktop\\PRN221PE_SP23_223469_VUVANMANH\\SWIPETUNE_API\\SWIPTETUNE_API\\track.json";
-            await System.IO.File.WriteAllTextAsync(filePath, trackContent);
-            var configuration = new ConfigurationBuilder()
-                                        .AddJsonFile(filePath)
-                                         .Build();
+
+            return content;
+        }
+        [HttpGet("tracks/{trackId}")]
+        public async Task<IActionResult> GetTrack(string trackId)
+        {
+            var track = new Track();
+           try
+            {
+                var accessToken= await GetAccessToken();
+                track = await spotifyService.GetSongs(trackId, accessToken);
+            }catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
             Song song = new Song
             {
-                SongId = configuration.GetSection("id").Value,
-                Song_title = configuration.GetSection("name").Value,
-                song_img_url = configuration.GetSection("album:images:0:url").Value,
+                SongId = trackId,
+                ArtisId = track.artists.FirstOrDefault()?.id,
+                Song_title = track.name,
+                Duration = TimeSpan.FromSeconds(track.duration_ms),
+                ReleaseDate = DateTime.Parse(track.album.release_date),
+                song_img_url = track.album.images.FirstOrDefault()?.url,
 
-
-            };
+        };
+            
             return Ok(song);
         }
 
