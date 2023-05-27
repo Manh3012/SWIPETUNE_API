@@ -51,7 +51,7 @@ namespace BusinessObject.Sub_Model
         public string label { get; set; }
         public int popularity { get; set; }
         public string album_group { get; set; }
-        public Artist[] artists { get; set; }
+        public Artist1[] artists { get; set; }
     }
 
 
@@ -76,7 +76,7 @@ namespace BusinessObject.Sub_Model
         public string type { get; set; }
     }
 
-    public class Artist
+    public class Artist1
     {
         public External_Urls1 external_urls { get; set; }
         public string href { get; set; }
@@ -112,7 +112,7 @@ namespace BusinessObject.Sub_Model
         public string reason { get; set; }
     }
 
-    public class Artist1
+    public class Artist2
     {
         public External_Urls3 external_urls { get; set; }
         public Followers followers { get; set; }

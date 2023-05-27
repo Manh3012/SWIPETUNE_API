@@ -6,10 +6,12 @@ using System.Collections.Generic;
 
 namespace BusinessObject.Sub_Model
 {
-    public class RegisterAccountModel
+    public class MailSettings
     {
-        public string Email { get; set; }
+        public string Mail { get; set; }
+        public string DisplayName { get; set; }
         public string Password { get; set; }
-
+        public string Host { get; set; }
+        public int Port { get; set; }
     }
 }

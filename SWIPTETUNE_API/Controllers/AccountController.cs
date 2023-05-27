@@ -1,16 +1,15 @@
-﻿using System.Text;
-using BusinessObject;
+﻿using MimeKit;
 using Repository.Repo;
-using System.Xml.Linq;
+using MailKit.Security;
 using Repository.Interface;
 using BusinessObject.Models;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using BusinessObject.Sub_Model;
-using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 
 namespace SWIPTETUNE_API.Controllers
 {
@@ -20,153 +19,175 @@ namespace SWIPTETUNE_API.Controllers
     {
         private IAccountRepository repository = new AccountRepository();
         private readonly IConfiguration _configuration;
+        private readonly SignInManager<Account> _signInManager;
+        private readonly UserManager<Account> _userManager;
+        private readonly MailSettings mailSettings;
 
-        public AccountController(IConfiguration configuration,IAccountRepository accountRepository)
+        public AccountController(IConfiguration configuration,IAccountRepository accountRepository, SignInManager<Account> signInManager, UserManager<Account> userManager, IOptions<MailSettings> _mailSettings)
         {
             _configuration = configuration;
             repository = accountRepository;
+            _signInManager = signInManager;
+            _userManager = userManager;
+            mailSettings = _mailSettings.Value;
+           
         }
 
+
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register(RegisterAccountModel model)
+        {
+            var user = new Account
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                // Set other properties as needed
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                // User registration successful
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+                // Build the confirmation link
+                var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
+
+                // Send the verification email
+                await SendVerificationEmail(user.Email, confirmationLink);
+                return Ok();
+            }
+            else
+            {
+                // User registration failed
+                return BadRequest(result.Errors);
+            }
+        }
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult Register(RegisterAccountModel account)
+        public async Task<IActionResult> Login([FromBody] LoginModel loginModel) {
+
+            var result = await _signInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, false, lockoutOnFailure: false);
+            if (result.Succeeded)
+            {
+                // Login successful
+                return Ok();
+            }
+            else
+            {
+                // Login failed
+                return Unauthorized();
+            }
+        }
+        [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail(string userId, string token)
+    {
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
         {
-            string msg = "";
-            try
-            {
-                var p = repository.RegisterAccount(account);
-                msg = "Register Successfully";
-                if (p == null)
-                {
-                    return NotFound();
-                }
-            }
-            catch (Exception ex)
-            {
-                msg= ex.Message;
-            }
-             
-                return Ok(
-                     msg
-                    );
+            // Invalid user ID or token
+            return BadRequest();
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult Login(string email,string password) {
-        
-                Account account = repository.Login(email, password);
-            if(account==null)
-            {
-                return NotFound();
-            }
-            string msg = "Login successfully";
-            var token = GenerateJwtToken(account.AccountId.ToString(),account.FullName);
-            repository.AddToken(account.AccountId, token);
+        var user = await _userManager.FindByIdAsync(userId);
 
-            return Ok(new
-            {
-                message=msg,
-                token=token
-            });
-        }
-
-        [HttpPut]
-        [Route("update")]
-        [Authorize(Policy = "Admin")]
-        public IActionResult UpdateAccount(Guid Id,UpdateAccountModel account) {
-
-            string msg = "";
-            try
-            {
-                repository.UpdateAccount(Id, account);
-                msg = "Update successfully";
-            }
-catch (Exception ex)
-            {
-                msg=ex.Message;
-            }
-            return Ok(new { message=msg });
-        }
-        private string GenerateJwtToken(string userId,string name)
+        if (user == null)
         {
-            // Define the security key (can be a string or a certificate)
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("Jwt:Key")));
-
-            // Create signing credentials using the security key
-            var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var tokenIssuer = _configuration.GetValue<string>("Jwt:Issuer");
-            var tokenAudience = _configuration.GetValue<string>("Jwt:Audience");
-
-            // Set the claims for the token
-            var claims = new[]
-            {
-        new Claim(ClaimTypes.NameIdentifier, userId),
-        new Claim(ClaimTypes.Name, name)
-    };
-
-            // Set the token expiration time
-            var tokenExpiration = DateTime.UtcNow.AddHours(1);
-
-            // Create the token descriptor
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = tokenExpiration,
-                SigningCredentials = signingCredentials,
-                Issuer = tokenIssuer,
-                Audience = tokenAudience
-            };
-
-            // Create the token handler
-            var tokenHandler = new JwtSecurityTokenHandler();
-
-            // Generate the token
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-
-            // Serialize the token to a string
-            var jwtToken = tokenHandler.WriteToken(token);
-
-            return jwtToken;
+            // User not found
+            return NotFound();
         }
-        [HttpDelete]
-        [Route("delete")]
-        [Authorize(Policy = "Admin")]
-        public IActionResult DeleteAccount(Guid accountId)
+
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+
+        if (result.Succeeded)
         {
-            string msg = "";
-            try
-            {
-                repository.DeleteAccount(accountId);
-                msg = "Delete Successfully";
-            }catch(Exception ex)
-            {
-                msg= ex.Message;
-            }
-            return Ok(new
-            {
-                Message = msg,
-            });
+            // Email confirmed successfully
+            return Ok();
         }
-        [HttpPost("logout")]
-        [Authorize]
+        else
+        {
+            // Email confirmation failed
+            return BadRequest(result.Errors);
+        }
+    }
+        [HttpPost]
+        [Route("logout")]
         public async Task<IActionResult> Logout()
         {
+            await _signInManager.SignOutAsync();
+            return Ok();
+        }
+        private async Task SendVerificationEmail(string email, string confirmationLink)
+        {
+            var message = new MimeMessage();
+            message.Sender = new MailboxAddress(mailSettings.DisplayName, mailSettings.Mail);
+            message.From.Add(new MailboxAddress(mailSettings.DisplayName, mailSettings.Mail));
+            message.To.Add(MailboxAddress.Parse(email));
+            message.Subject = "Email Verification";
+
+            var textBody = $"Thank you for registering! Please click the following link to confirm your email: {confirmationLink}";
+
+            // Create the HTML body with the confirmation link
+            var htmlBody = $"<p>Thank you for registering! Please click <a href=\"{confirmationLink}\">here</a> to confirm your email.</p>";
+
+            // Create a multipart/alternative message body to support both plain text and HTML
+            var bodyBuilder = new BodyBuilder();
+            bodyBuilder.TextBody = textBody;
+            bodyBuilder.HtmlBody = htmlBody;
+
+            message.Body = bodyBuilder.ToMessageBody();
+            // dùng SmtpClient của MailKit
+            using var smtp = new MailKit.Net.Smtp.SmtpClient();
+
             try
             {
-                // Get the current user's account ID
-                var accountId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                // Remove the access token from the account
-                repository.LogOut(accountId);
-
-                return Ok("Logged out successfully");
+                smtp.Connect(mailSettings.Host, mailSettings.Port, SecureSocketOptions.StartTls);
+                smtp.Authenticate(mailSettings.Mail, mailSettings.Password);
+                await smtp.SendAsync(message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                // Gửi mail thất bại, nội dung email sẽ lưu vào thư mục mailssave
+                System.IO.Directory.CreateDirectory("mailssave");
+                var emailsavefile = string.Format(@"mailssave/{0}.eml", Guid.NewGuid());
+                await message.WriteToAsync(emailsavefile);
+
+               
             }
+
+            smtp.Disconnect(true);
+
+
         }
+        [AllowAnonymous]
+        [HttpGet("LoginWithGoogle")]
+        public IActionResult LoginWithGoogle()
+        {
+            string redirectUrl = Url.Action("GoogleResponse", "Account");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("GoogleResponse")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync();
+            if (!authenticateResult.Succeeded)
+            {
+                // Handle failed authentication
+                return Unauthorized();
+            }
+
+            // Successful authentication
+            // Get user details from authenticateResult.Principal
+            // ...
+
+            return Ok();
+        }
+
 
     }
 }

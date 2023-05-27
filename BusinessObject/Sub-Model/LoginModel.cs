@@ -6,8 +6,9 @@ using System.Collections.Generic;
 
 namespace BusinessObject.Sub_Model
 {
-    public class RegisterAccountModel
+    public class LoginModel
     {
+
         public string Email { get; set; }
         public string Password { get; set; }
 

@@ -20,13 +20,5 @@ namespace Repository.Repo
             accountDAO = new AccountDAO();
         }
 
-        public Guid RegisterAccount(RegisterAccountModel account)=> accountDAO.RegisterAccount(account);
-        public Account Login(string email, string password)=> accountDAO.Login(email, password);
-
-        public void UpdateAccount(Guid AccountId,UpdateAccountModel account)=>accountDAO.UpdateAccount(AccountId,account);
-
-        public void DeleteAccount(Guid AccountId)=>accountDAO.DeleteAccount(AccountId);
-        public void AddToken(Guid AccountId, string token) => accountDAO.AddToken(AccountId, token);
-        public void LogOut(Guid AccountId)=>accountDAO.LogOut(AccountId);
     }
 }
