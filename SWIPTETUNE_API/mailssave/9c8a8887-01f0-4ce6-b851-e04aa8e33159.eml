@@ -1,0 +1,18 @@
+From: manh vu <vuvanmanh30122002@gmail.com>
+Date: Sat, 27 May 2023 12:59:44 +0700
+Subject: Email Verification
+Message-Id: <DG7PD86Q1KU4.YCELATHEIGLC1@msi>
+Sender: manh vu <vuvanmanh30122002@gmail.com>
+To: vuvanmanh3012@gmail.com
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="=-HcFp55dgTj9qPO1Bz9AKjw=="
+
+--=-HcFp55dgTj9qPO1Bz9AKjw==
+Content-Type: text/plain; charset=utf-8
+
+Thank you for registering! Please click the following link to confirm your email: https://localhost:7049/api/Account/confirm-email?userId=274ee18d-1816-4971-efcb-08db5e77920f&token=CfDJ8Hv762OzrTxAhYPGAVpZ3Nl%2B9zRVup5Gslb672aXqzQtzJAa%2BJ7NvebFEbDnrhHYnYBqP83keJjDYFJfRDbKetKPTGUeWBVY%2BZSn%2FZn7s9DqKzuBiwaFs9ndYH0iSJXE81vAXo0i48y%2FAdNACi%2B0yeyly%2FfPtBkJ8Yt4BqPdhygsyStw%2FuvZXPfvhj3B7VVasf%2FyPIqin72BlG0bTtYonA0VXcAcbeuXj9lk6bETBESGJ4NgkH%2FA8DFm8K16RxlTnA%3D%3D
+--=-HcFp55dgTj9qPO1Bz9AKjw==
+Content-Type: text/html; charset=utf-8
+
+<p>Thank you for registering! Please click <a href="https://localhost:7049/api/Account/confirm-email?userId=274ee18d-1816-4971-efcb-08db5e77920f&token=CfDJ8Hv762OzrTxAhYPGAVpZ3Nl%2B9zRVup5Gslb672aXqzQtzJAa%2BJ7NvebFEbDnrhHYnYBqP83keJjDYFJfRDbKetKPTGUeWBVY%2BZSn%2FZn7s9DqKzuBiwaFs9ndYH0iSJXE81vAXo0i48y%2FAdNACi%2B0yeyly%2FfPtBkJ8Yt4BqPdhygsyStw%2FuvZXPfvhj3B7VVasf%2FyPIqin72BlG0bTtYonA0VXcAcbeuXj9lk6bETBESGJ4NgkH%2FA8DFm8K16RxlTnA%3D%3D">here</a> to confirm your email.</p>
+--=-HcFp55dgTj9qPO1Bz9AKjw==--
