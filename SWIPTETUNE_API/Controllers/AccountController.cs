@@ -1,12 +1,15 @@
 ﻿using MimeKit;
+using System.Net;
 using Repository.Repo;
 using MailKit.Security;
 using Repository.Interface;
+using Newtonsoft.Json.Linq;
 using BusinessObject.Models;
 using Microsoft.AspNetCore.Mvc;
 using BusinessObject.Sub_Model;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Specialized;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -42,6 +45,11 @@ namespace SWIPTETUNE_API.Controllers
             {
                 UserName = model.Email,
                 Email = model.Email,
+                DOB = model.DOB,
+                Gender = model.Gender,
+                Address = model.Address,
+                Created_At = DateTime.UtcNow,
+                PhoneNumber = model.PhoneNumber,
                 // Set other properties as needed
             };
 
@@ -103,7 +111,8 @@ namespace SWIPTETUNE_API.Controllers
 
         if (result.Succeeded)
         {
-            // Email confirmed successfully
+            user.Verified_At= DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
             return Ok();
         }
         else
@@ -160,32 +169,6 @@ namespace SWIPTETUNE_API.Controllers
             smtp.Disconnect(true);
 
 
-        }
-        [AllowAnonymous]
-        [HttpGet("LoginWithGoogle")]
-        public IActionResult LoginWithGoogle()
-        {
-            string redirectUrl = Url.Action("GoogleResponse", "Account");
-            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
-
-        [AllowAnonymous]
-        [HttpGet("GoogleResponse")]
-        public async Task<IActionResult> GoogleResponse()
-        {
-            var authenticateResult = await HttpContext.AuthenticateAsync();
-            if (!authenticateResult.Succeeded)
-            {
-                // Handle failed authentication
-                return Unauthorized();
-            }
-
-            // Successful authentication
-            // Get user details from authenticateResult.Principal
-            // ...
-
-            return Ok();
         }
 
 

@@ -14,7 +14,7 @@ namespace BusinessObject
 {
     public class SWIPETUNEDbContext : IdentityDbContext<Account,IdentityRole<Guid>,Guid>
     {
-        public SWIPETUNEDbContext(DbContextOptions<SWIPETUNEDbContext> options) : base(options) { }
+        public SWIPETUNEDbContext(){ }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

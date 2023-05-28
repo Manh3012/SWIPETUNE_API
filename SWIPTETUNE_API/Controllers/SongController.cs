@@ -59,8 +59,8 @@ namespace SWIPTETUNE_API.Controllers
             Song song = new Song
             {
                 SongId = trackId,
-                ArtisId = track.artists.FirstOrDefault()?.id,
                 Song_title = track.name,
+                ArtistId = track.artists.FirstOrDefault().id,
                 Duration = TimeSpan.FromSeconds(track.duration_ms),
                 ReleaseDate = DateTime.Parse(track.album.release_date),
                 song_img_url = track.album.images.FirstOrDefault()?.url,

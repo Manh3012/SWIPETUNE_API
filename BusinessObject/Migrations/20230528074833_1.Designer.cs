@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessObject.Migrations
 {
     [DbContext(typeof(SWIPETUNEDbContext))]
-    [Migration("20230526104326_Initial")]
-    partial class Initial
+    [Migration("20230528074833_1")]
+    partial class _1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -267,11 +267,8 @@ namespace BusinessObject.Migrations
                     b.Property<string>("SongId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ArtisId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ArtistId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<TimeSpan?>("Duration")
@@ -549,9 +546,13 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Song", b =>
                 {
-                    b.HasOne("BusinessObject.Models.Artist", null)
+                    b.HasOne("BusinessObject.Models.Artist", "Artist")
                         .WithMany("Songs")
-                        .HasForeignKey("ArtistId");
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.SyncedPlaylist", b =>

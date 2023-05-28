@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BusinessObject.Migrations
 {
-    public partial class Initial : Migration
+    public partial class _1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -173,13 +173,12 @@ namespace BusinessObject.Migrations
                 columns: table => new
                 {
                     SongId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ArtisId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ArtistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     GenreId = table.Column<int>(type: "int", nullable: true),
                     Song_title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Duration = table.Column<TimeSpan>(type: "time", nullable: true),
                     ReleaseDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    song_img_url = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ArtistId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    song_img_url = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -188,7 +187,8 @@ namespace BusinessObject.Migrations
                         name: "FK_Songs_Artists_ArtistId",
                         column: x => x.ArtistId,
                         principalTable: "Artists",
-                        principalColumn: "ArtistId");
+                        principalColumn: "ArtistId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(

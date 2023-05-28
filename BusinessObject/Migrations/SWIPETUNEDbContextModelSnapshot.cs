@@ -265,11 +265,8 @@ namespace BusinessObject.Migrations
                     b.Property<string>("SongId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ArtisId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ArtistId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<TimeSpan?>("Duration")
@@ -547,9 +544,13 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Song", b =>
                 {
-                    b.HasOne("BusinessObject.Models.Artist", null)
+                    b.HasOne("BusinessObject.Models.Artist", "Artist")
                         .WithMany("Songs")
-                        .HasForeignKey("ArtistId");
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.SyncedPlaylist", b =>
