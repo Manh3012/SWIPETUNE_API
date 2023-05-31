@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<h2>Login with Spotify</h2>
+
+@if (!string.IsNullOrEmpty(ViewBag.AuthUrl))
+{
+    <a href="@ViewBag.AuthUrl" class="btn btn-primary">Login with Spotify</a>
+}
+else
+{
+    <p>Failed to retrieve Spotify login URL.</p>
+}

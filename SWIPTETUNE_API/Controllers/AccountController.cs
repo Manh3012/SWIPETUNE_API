@@ -5,6 +5,7 @@ using MailKit.Security;
 using Repository.Interface;
 using Newtonsoft.Json.Linq;
 using BusinessObject.Models;
+using Microsoft.VisualBasic;
 using Microsoft.AspNetCore.Mvc;
 using BusinessObject.Sub_Model;
 using Microsoft.Extensions.Options;
@@ -20,7 +21,7 @@ namespace SWIPTETUNE_API.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private IAccountRepository repository = new AccountRepository();
+        private IAccountRepository repository;
         private readonly IConfiguration _configuration;
         private readonly SignInManager<Account> _signInManager;
         private readonly UserManager<Account> _userManager;
@@ -171,6 +172,30 @@ namespace SWIPTETUNE_API.Controllers
 
         }
 
+        [HttpPut]
+        [Route("EditProfile")]
+        public async Task<IActionResult> EditProfile(Guid id,[FromBody] UpdateAccountModel updateAccountModel )
+        {
+            var msg = "";
+            try
+            {
+                var existed = await repository.GetUserById(id);
 
+               
+                    existed.Address = updateAccountModel.Address;
+                existed.DOB = updateAccountModel.DOB;
+                existed.Gender = updateAccountModel.Gender;
+                existed.PhoneNumber = updateAccountModel.PhoneNumber;
+
+
+                repository.UpdateProfile(existed);
+                msg = "Update success";
+                return Ok(msg);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

@@ -214,7 +214,7 @@ namespace BusinessObject.Migrations
                     b.Property<string>("PlaylistId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("AccountId")
+                    b.Property<Guid?>("AccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("Created")
@@ -516,9 +516,7 @@ namespace BusinessObject.Migrations
                 {
                     b.HasOne("BusinessObject.Models.Account", "Account")
                         .WithMany("Playlists")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AccountId");
 
                     b.Navigation("Account");
                 });

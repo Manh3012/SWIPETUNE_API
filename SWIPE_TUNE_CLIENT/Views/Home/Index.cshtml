@@ -1,9 +1,10 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model BusinessObject.Sub_Model.AccessToken
+@{
+    ViewBag.Title = "Login";
+  
 }
-
-<h2>Login with Google</h2>
-
-<div>
-    <a asp-page="./ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="ReturnUrl">Login with Google</a>
-</div>
+<h1>Welcome to the Home Page!</h1>
+<p>
+@Html.DisplayFor(model=>Model.access_token)
+</p>
+<a href=@Url.Action("Logout","Spotify")>Log Out</a>

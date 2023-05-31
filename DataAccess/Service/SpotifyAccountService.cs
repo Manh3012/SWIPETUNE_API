@@ -6,6 +6,7 @@ using System.Diagnostics;
 using DataAccess.Interface;
 using BusinessObject.Models;
 using System.Threading.Tasks;
+using System.Net.Http.Headers;
 using BusinessObject.Sub_Model;
 using System.Collections.Generic;
 
@@ -32,14 +33,13 @@ namespace DataAccess.Service
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var responseStream = await response.Content.ReadAsStreamAsync();
-            var authResult= await JsonSerializer.DeserializeAsync<AccessToken>(responseStream);
+            var authResult = await JsonSerializer.DeserializeAsync<AccessToken>(responseStream);
 
             return authResult.access_token;
         }
 
-   
+
+
 
     }
-
-   
 }

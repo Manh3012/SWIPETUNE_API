@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using SWIPE_TUNE_CLIENT.Models;
-using System.Diagnostics;
 
 namespace SWIPE_TUNE_CLIENT.Controllers
 {
@@ -17,6 +17,7 @@ namespace SWIPE_TUNE_CLIENT.Controllers
         {
             return View();
         }
+        
 
         public IActionResult Privacy()
         {

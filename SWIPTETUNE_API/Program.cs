@@ -105,7 +105,9 @@ IConfiguration configuration = config.Build();
 builder.Services.AddOptions();                                        // Kích hoạt Options
 var mailsettings = configuration.GetSection("MailSettings");  // đọc config
 builder.Services.Configure<MailSettings>(mailsettings);               // đăng ký để Inject
-builder.Services.AddSingleton<IAccountRepository,AccountRepository>();
+builder.Services.AddScoped<IAccountRepository,AccountRepository>();
+builder.Services.AddScoped<IPlayListRepository, PlayListRepository>();
+
 
 builder.Services.Configure<IdentityOptions>(options => {
     // Thiết lập về Password

@@ -11,7 +11,7 @@ namespace BusinessObject.Models
     {
         [Key]
         public string PlaylistId { get; set; }
-        public Guid AccountId { get; set; }
+        public Guid? AccountId { get; set; }
 
         [Required] public string? Name { get; set; }
         public DateTime? Created { get; set; }
@@ -19,6 +19,6 @@ namespace BusinessObject.Models
 
         public bool isPublic { get; set; }
 
-        public virtual Account Account { get; set; }
+        public virtual Account? Account { get; set; }
     }
 }

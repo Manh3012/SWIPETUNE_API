@@ -151,7 +151,7 @@ namespace BusinessObject.Migrations
                 columns: table => new
                 {
                     PlaylistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: true),
                     playlist_img_url = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -164,8 +164,7 @@ namespace BusinessObject.Migrations
                         name: "FK_Playlists_Accounts_AccountId",
                         column: x => x.AccountId,
                         principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(

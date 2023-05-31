@@ -15,10 +15,12 @@ namespace Repository.Repo
     {
         private readonly AccountDAO accountDAO;
 
-        public AccountRepository()
+        public AccountRepository(SWIPETUNEDbContext context)
         {
-            accountDAO = new AccountDAO();
+            accountDAO = new AccountDAO(context);
         }
 
+        public async Task<Account> GetUserById(Guid id)=>await accountDAO.GetUserByid(id);
+        public void UpdateProfile(Account account)=> accountDAO.UpdateProfile(account);
     }
 }

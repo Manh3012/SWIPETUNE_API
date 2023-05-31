@@ -24,6 +24,7 @@ namespace BusinessObject
             IConfiguration configuration = builder.Build();
             optionsBuilder.UseSqlServer(configuration.GetConnectionString("SWIPE_TUNEDB"));
 
+
         }
         public virtual DbSet<Account> Accounts { get; set; }
         public virtual DbSet<AccountSubscription> AccountSubscriptions { get; set; }

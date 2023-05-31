@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json;
-using System.Net.Http;
-using System.Text.Json;
+﻿using System.Text;
+using BusinessObject;
+using Newtonsoft.Json;
 using DataAccess.Interface;
+using Newtonsoft.Json.Linq;
 using BusinessObject.Models;
+using System.Net.Http.Headers;
 using BusinessObject.Sub_Model;
 using Microsoft.Extensions.Configuration;
 
@@ -13,13 +15,15 @@ namespace DataAccess.Service
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ISpotifyAccountService spotifyAccountService;
+        private readonly SWIPETUNEDbContext _WIPETUNEDbContext;
 
 
-        public SpotifyService(HttpClient httpClient, IConfiguration configuration, ISpotifyAccountService spotifyAccountService)
+        public SpotifyService(HttpClient httpClient, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, SWIPETUNEDbContext dbContext)
         {
             _httpClient = httpClient;
             _configuration = configuration;
             this.spotifyAccountService = spotifyAccountService;
+            _WIPETUNEDbContext = dbContext;
         }
         public async Task<Track> GetSongs(string trackId, string accessToken)
         {
@@ -34,11 +38,11 @@ namespace DataAccess.Service
 
 
         }
-        public async Task<ArtistSpotify> SearchArtists(string searchQuery,string accessToken)
+        public async Task<ArtistSpotify> SearchArtists(string searchQuery, string accessToken)
         {
             {
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-            string url = $"artists/{searchQuery}";
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+                string url = $"artists/{searchQuery}";
 
                 try
                 {
@@ -146,6 +150,182 @@ namespace DataAccess.Service
 
             return songs;
         }
+        public async Task<string> CreatePlaylist(Playlist Createplaylist, string accessToken)
+        {
+            var user_id = await GetUserProfile(accessToken);
+            var endpoint = $"users/{user_id}/playlists";
+            CreatedPlaylist createPlaylistRequest = new CreatedPlaylist
+            {
+                name = Createplaylist.Name,
+                description = "",
+                _public = Createplaylist.isPublic
+            };
 
+            var json = System.Text.Json.JsonSerializer.Serialize(createPlaylistRequest);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await _httpClient.PostAsync(endpoint, content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to create playlist. Error: {responseContent}");
+            }
+
+            var playlist = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(responseContent);
+            var playlistId = playlist.id.ToString();
+
+            return playlistId;
+        }
+        public async Task<string> GetUserProfile(string accessToken)
+        {
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+
+            var endpoint = "me";
+            var response = await _httpClient.GetAsync(endpoint);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to retrieve user profile. Error: {response.StatusCode}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var userProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<UserProfile>(responseContent);
+
+            return userProfile.id;
+
+
+
+        }
+        public async Task<bool> AddTrackToPlaylist(string trackId, string playlistId, string accessToken)
+        {
+            var apiUrl = $"playlists/{playlistId}/tracks";
+
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+
+            var requestBody = new
+            {
+                uris = new List<string> { $"spotify:track:{trackId}" },
+                position = 0
+            };
+
+            var json = JsonConvert.SerializeObject(requestBody);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(apiUrl, content);
+
+            return response.IsSuccessStatusCode;
+        }
+        public async Task<Playlist> GetPlaylist(string playlistId, string accessToken)
+        {
+            var apiUrl = $"playlists/{playlistId}";
+
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+
+            var response = await _httpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var playlistJson = JObject.Parse(content);
+
+                var playlistDetail = new Playlist
+                {
+                    PlaylistId = playlistJson["id"]?.ToString(),
+                    Name = playlistJson["name"]?.ToString(),
+                    Created = playlistJson["created"]?.ToObject<DateTime?>(),
+                    isPublic = playlistJson["public"]?.ToObject<bool>() ?? false,
+                    playlist_img_url = playlistJson["images"]?.FirstOrDefault()?["url"]?.ToString(),
+                };
+
+                return playlistDetail;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<List<Playlist>> FetchUserPlaylists(string accessToken)
+        {
+            var playlists = new List<Playlist>();
+            var apiUrl = "https://api.spotify.com/v1/me/playlists";
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                var response = await httpClient.GetAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var responseJson = JObject.Parse(content);
+
+                    var playlistsJson = responseJson["items"];
+
+                    foreach (var playlistJson in playlistsJson)
+                    {
+                        var playlist = new Playlist
+                        {
+                            PlaylistId = playlistJson["id"].ToString(),
+                            Name = playlistJson["name"]?.ToString(),
+                            Created = playlistJson["created"]?.ToObject<DateTime?>(),
+                            playlist_img_url = playlistJson["images"]?.FirstOrDefault()?["url"]?.ToString(),
+                            isPublic = playlistJson["public"]?.ToObject<bool>() ?? false
+                        };
+
+                        playlists.Add(playlist);
+                    }
+                }
+            }
+            return playlists;
+        }
+
+
+        public async Task<List<Song>> GetRecommendation(string artisId, List<string> genres, string trackId, string accessToken)
+        {
+            var listSongs = new List<Song>();
+            var apiUrl = "recommendations";
+            var queryParams = new List<string>
+    {
+        $"seed_artists={Uri.EscapeDataString(artisId)}",
+        $"seed_genres={Uri.EscapeDataString(string.Join(",", genres))}",
+        $"seed_tracks={Uri.EscapeDataString(trackId)}"
+    };
+            var requestUrl = $"{apiUrl}?{string.Join("&", queryParams)}";
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+            var response = await _httpClient.GetAsync(requestUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Parse the response content
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var tracks = JObject.Parse(responseContent)["tracks"].ToObject<List<Track>>();
+                var songs = tracks.Select(track => new Song
+                {
+                    SongId = trackId,
+                    Song_title = track.name,
+                    ArtistId = track.artists.FirstOrDefault().id,
+                    Duration = TimeSpan.FromSeconds(track.duration_ms),
+                    ReleaseDate = DateTime.Parse(track.album.release_date),
+                    song_img_url = track.album.images.FirstOrDefault()?.url,
+                }).ToList();
+                return songs;
+            }
+            else
+            {
+                return new List<Song>();
+            }
+        }
     }
 }
+
+
+
