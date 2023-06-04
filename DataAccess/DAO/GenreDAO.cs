@@ -22,14 +22,12 @@ namespace DataAccess.DAO
 
         public  void AddGenre(Genre genre)
         {
-           
-            
+           var exist = context.Genres.Any(x=>x.Name == genre.Name);
+            if (!exist)
+            {
                 context.Genres.Add(genre);
                 context.SaveChanges();
-            
-
-
-
+            }
         }
         public  List<Genre> GetGenres()
         {

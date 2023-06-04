@@ -25,6 +25,9 @@ namespace BusinessObject.Models
 
         public virtual ICollection<Playlist>? Playlists { get; set;
         }
+        public virtual ICollection<AccountGenre>? AccountGenres { get; set; }
+        public virtual ICollection<AccountSubscription>? AccountSubscriptions { get; set; }
+
 
     }
 }

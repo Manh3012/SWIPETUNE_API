@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System.Net.Http;
 using DataAccess.Interface;
+using Newtonsoft.Json.Linq;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
 using BusinessObject.Sub_Model;
@@ -19,7 +20,7 @@ namespace SWIPTETUNE_API.Controllers
         private readonly HttpClient _httpClient;
 
         private readonly IConfiguration _configuration;
-        private const string RedirectUri = "https://localhost:7134/Spotify/Callback";
+        private const string RedirectUri = "http://18.141.188.211:7049/api/SpotifyAccount/callback";
         private const string Scopes = "playlist-modify-public user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-private";
         public SpotifyAccountController(HttpClient _httpClient, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService)
         {
@@ -36,8 +37,27 @@ namespace SWIPTETUNE_API.Controllers
             var authUrl = $"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri={RedirectUri}&scope={Scopes}";
 
             return authUrl;
-        } 
         }
+        [HttpGet]
+        [Route("callback")]
+        public async Task<IActionResult> Callback(string code)
+        {
+            var httpClient = new HttpClient();
+            var requestBody = new FormUrlEncodedContent(new[]
+            {
+            new KeyValuePair<string, string>("client_id", _configuration.GetValue<string>("SpotifyApi:ClientId")),
+            new KeyValuePair<string, string>("client_secret", _configuration.GetValue<string>("SpotifyApi:ClientSecret")),
+            new KeyValuePair<string, string>("grant_type", "authorization_code"),
+            new KeyValuePair<string, string>("code", code),
+            new KeyValuePair<string, string>("redirect_uri", RedirectUri)
+        });
+            var response = await httpClient.PostAsync("https://accounts.spotify.com/api/token", requestBody);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            var accessToken = JObject.Parse(responseContent)["access_token"].ToString();
+            return Ok(accessToken);
+        }
+    }
 
     }
 

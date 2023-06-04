@@ -48,11 +48,25 @@ namespace BusinessObject.Migrations
                     ArtistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     artis_genres = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    artist_img_url = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    artist_img_url = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Artists", x => x.ArtistId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Genres",
+                columns: table => new
+                {
+                    GenreId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Genres", x => x.GenreId);
                 });
 
             migrationBuilder.CreateTable(
@@ -78,7 +92,7 @@ namespace BusinessObject.Migrations
                     SubscriptionName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Duration = table.Column<TimeSpan>(type: "time", nullable: false)
+                    Duration = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -168,11 +182,37 @@ namespace BusinessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AccountGenre",
+                columns: table => new
+                {
+                    AccountGenreId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AccountId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    GenreId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountGenre", x => x.AccountGenreId);
+                    table.ForeignKey(
+                        name: "FK_AccountGenre_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AccountGenre_Genres_GenreId",
+                        column: x => x.GenreId,
+                        principalTable: "Genres",
+                        principalColumn: "GenreId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Songs",
                 columns: table => new
                 {
                     SongId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ArtistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ArtistId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     GenreId = table.Column<int>(type: "int", nullable: true),
                     Song_title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Duration = table.Column<TimeSpan>(type: "time", nullable: true),
@@ -186,8 +226,12 @@ namespace BusinessObject.Migrations
                         name: "FK_Songs_Artists_ArtistId",
                         column: x => x.ArtistId,
                         principalTable: "Artists",
-                        principalColumn: "ArtistId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ArtistId");
+                    table.ForeignKey(
+                        name: "FK_Songs_Genres_GenreId",
+                        column: x => x.GenreId,
+                        principalTable: "Genres",
+                        principalColumn: "GenreId");
                 });
 
             migrationBuilder.CreateTable(
@@ -287,29 +331,11 @@ namespace BusinessObject.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Genres",
-                columns: table => new
-                {
-                    GenreId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
-                    SongId = table.Column<string>(type: "nvarchar(450)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Genres", x => x.GenreId);
-                    table.ForeignKey(
-                        name: "FK_Genres_Songs_SongId",
-                        column: x => x.SongId,
-                        principalTable: "Songs",
-                        principalColumn: "SongId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PlaylistSongs",
                 columns: table => new
                 {
+                    PlaylistSongId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     PlaylistId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SongId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     position = table.Column<int>(type: "int", nullable: false),
@@ -317,6 +343,7 @@ namespace BusinessObject.Migrations
                 },
                 constraints: table =>
                 {
+                    table.PrimaryKey("PK_PlaylistSongs", x => x.PlaylistSongId);
                     table.ForeignKey(
                         name: "FK_PlaylistSongs_Playlists_PlaylistId",
                         column: x => x.PlaylistId,
@@ -351,6 +378,16 @@ namespace BusinessObject.Migrations
                         principalColumn: "AccountSubId",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountGenre_AccountId",
+                table: "AccountGenre",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AccountGenre_GenreId",
+                table: "AccountGenre",
+                column: "GenreId");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
@@ -390,11 +427,6 @@ namespace BusinessObject.Migrations
                 column: "SubscriptionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Genres_SongId",
-                table: "Genres",
-                column: "SongId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Payments_AccountSubId",
                 table: "Payments",
                 column: "AccountSubId");
@@ -432,6 +464,11 @@ namespace BusinessObject.Migrations
                 column: "ArtistId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Songs_GenreId",
+                table: "Songs",
+                column: "GenreId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SyncedPlaylists_AccountId",
                 table: "SyncedPlaylists",
                 column: "AccountId");
@@ -445,6 +482,9 @@ namespace BusinessObject.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AccountGenre");
+
+            migrationBuilder.DropTable(
                 name: "AccountsClaims");
 
             migrationBuilder.DropTable(
@@ -455,9 +495,6 @@ namespace BusinessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "AccountsTokens");
-
-            migrationBuilder.DropTable(
-                name: "Genres");
 
             migrationBuilder.DropTable(
                 name: "Payments");
@@ -488,6 +525,9 @@ namespace BusinessObject.Migrations
 
             migrationBuilder.DropTable(
                 name: "Artists");
+
+            migrationBuilder.DropTable(
+                name: "Genres");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

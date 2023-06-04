@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessObject.Migrations
 {
     [DbContext(typeof(SWIPETUNEDbContext))]
-    [Migration("20230531073840_1")]
+    [Migration("20230604091102_1")]
     partial class _1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,6 +111,29 @@ namespace BusinessObject.Migrations
                     b.ToTable("Accounts", (string)null);
                 });
 
+            modelBuilder.Entity("BusinessObject.Models.AccountGenre", b =>
+                {
+                    b.Property<int>("AccountGenreId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountGenreId"), 1L, 1);
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("GenreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AccountGenreId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("AccountGenre");
+                });
+
             modelBuilder.Entity("BusinessObject.Models.AccountSubscription", b =>
                 {
                     b.Property<Guid>("AccountSubId")
@@ -151,7 +174,6 @@ namespace BusinessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("artist_img_url")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ArtistId");
@@ -176,12 +198,7 @@ namespace BusinessObject.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("SongId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("GenreId");
-
-                    b.HasIndex("SongId");
 
                     b.ToTable("Genres");
                 });
@@ -241,6 +258,12 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.PlaylistSong", b =>
                 {
+                    b.Property<int>("PlaylistSongId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlaylistSongId"), 1L, 1);
+
                     b.Property<string>("PlaylistId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -255,6 +278,8 @@ namespace BusinessObject.Migrations
                     b.Property<int>("position")
                         .HasColumnType("int");
 
+                    b.HasKey("PlaylistSongId");
+
                     b.HasIndex("PlaylistId");
 
                     b.HasIndex("SongId");
@@ -268,7 +293,6 @@ namespace BusinessObject.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ArtistId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<TimeSpan?>("Duration")
@@ -290,6 +314,8 @@ namespace BusinessObject.Migrations
 
                     b.HasIndex("ArtistId");
 
+                    b.HasIndex("GenreId");
+
                     b.ToTable("Songs");
                 });
 
@@ -304,8 +330,8 @@ namespace BusinessObject.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -479,10 +505,29 @@ namespace BusinessObject.Migrations
                     b.ToTable("AccountsTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BusinessObject.Models.AccountGenre", b =>
+                {
+                    b.HasOne("BusinessObject.Models.Account", "Account")
+                        .WithMany("AccountGenres")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Models.Genre", "Genre")
+                        .WithMany("AccountGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Genre");
+                });
+
             modelBuilder.Entity("BusinessObject.Models.AccountSubscription", b =>
                 {
                     b.HasOne("BusinessObject.Models.Account", "Account")
-                        .WithMany()
+                        .WithMany("AccountSubscriptions")
                         .HasForeignKey("AccountID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -494,13 +539,6 @@ namespace BusinessObject.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Subscription");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.Genre", b =>
-                {
-                    b.HasOne("BusinessObject.Models.Song", null)
-                        .WithMany("Genres")
-                        .HasForeignKey("SongId");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Payment", b =>
@@ -526,13 +564,13 @@ namespace BusinessObject.Migrations
             modelBuilder.Entity("BusinessObject.Models.PlaylistSong", b =>
                 {
                     b.HasOne("BusinessObject.Models.Playlist", "Playlist")
-                        .WithMany()
+                        .WithMany("PlaylistSongs")
                         .HasForeignKey("PlaylistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Models.Song", "Song")
-                        .WithMany()
+                        .WithMany("PlaylistSongs")
                         .HasForeignKey("SongId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -546,11 +584,15 @@ namespace BusinessObject.Migrations
                 {
                     b.HasOne("BusinessObject.Models.Artist", "Artist")
                         .WithMany("Songs")
-                        .HasForeignKey("ArtistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ArtistId");
+
+                    b.HasOne("BusinessObject.Models.Genre", "Genres")
+                        .WithMany()
+                        .HasForeignKey("GenreId");
 
                     b.Navigation("Artist");
+
+                    b.Navigation("Genres");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.SyncedPlaylist", b =>
@@ -625,6 +667,10 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Account", b =>
                 {
+                    b.Navigation("AccountGenres");
+
+                    b.Navigation("AccountSubscriptions");
+
                     b.Navigation("Playlists");
                 });
 
@@ -633,9 +679,19 @@ namespace BusinessObject.Migrations
                     b.Navigation("Songs");
                 });
 
+            modelBuilder.Entity("BusinessObject.Models.Genre", b =>
+                {
+                    b.Navigation("AccountGenres");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.Playlist", b =>
+                {
+                    b.Navigation("PlaylistSongs");
+                });
+
             modelBuilder.Entity("BusinessObject.Models.Song", b =>
                 {
-                    b.Navigation("Genres");
+                    b.Navigation("PlaylistSongs");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Subscription", b =>

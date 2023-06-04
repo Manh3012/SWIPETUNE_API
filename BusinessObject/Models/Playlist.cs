@@ -20,5 +20,6 @@ namespace BusinessObject.Models
         public bool isPublic { get; set; }
 
         public virtual Account? Account { get; set; }
+        public ICollection<PlaylistSong>? PlaylistSongs { get; set; }
     }
 }

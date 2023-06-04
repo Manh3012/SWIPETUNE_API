@@ -37,11 +37,12 @@ namespace BusinessObject
         public virtual DbSet<Song> Songs { get; set; }
         public virtual DbSet<Subscription> Subscriptions { get; set; }
         public virtual DbSet<SyncedPlaylist> SyncedPlaylists { get; set; }
+        public virtual DbSet<AccountGenre> AccountGenre { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<PlaylistSong>().HasNoKey();
             modelBuilder.Entity<SyncedPlaylist>()
            .HasOne(sp => sp.Account)
            .WithMany()

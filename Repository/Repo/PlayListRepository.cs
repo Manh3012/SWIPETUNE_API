@@ -20,5 +20,8 @@ namespace Repository.Repo
         }
 
         public void CreatePlayList(Playlist playlist)=> playlistDAO.CreatePlayList(playlist);
+        public void AddTrackToPlaylist(PlaylistSong playlistSong)=>playlistDAO.AddTrackToPlaylist(playlistSong);
+        public string GetPlaylistId(string playlistname)=> playlistDAO.GetPlaylistId(playlistname);
+        public Playlist GetPlaylistSong(string playlistId)=>playlistDAO.GetPlaylistSong(playlistId);
     }
 }

@@ -17,9 +17,10 @@ namespace DataAccess.Interface
         Task<List<Song>> GetTopTracks(string artistId, string accessToken);
         Task<string> CreatePlaylist(Playlist Createplaylist, string accessToken);
         Task<string> GetUserProfile(string accessToken);
-        Task<bool> AddTrackToPlaylist(string trackId, string playlistId, string accessToken);
+        Task<bool> AddTrackToPlaylist(List<string> trackIds, string playlistId, int position, string accessToken);
         Task<Playlist> GetPlaylist(string playlistId, string accessToken);
         Task<List<Playlist>> FetchUserPlaylists(string accessToken);
         Task<List<Song>> GetRecommendation(string artisId, List<string> genres, string trackId, string accessToken);
+        Task<bool> SyncPlaylist(Playlist Createplaylist, string accessToken);
     }
 }

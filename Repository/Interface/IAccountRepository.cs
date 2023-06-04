@@ -12,5 +12,7 @@ namespace Repository.Interface
     {
         Task<Account> GetUserById(Guid id);
         void UpdateProfile(Account account);
+        void AddAccountGenre(AccountGenreModel model);
+        Task<AccountGenre> UpdateAccountGenre(AccountGenreModel model);
     }
 }

@@ -17,5 +17,6 @@ namespace BusinessObject.Models
         public string Name { get; set; }
         [StringLength(60)]
         public string? Description { get; set; }
+        public virtual ICollection<AccountGenre>? AccountGenres { get; set; }
     }
 }

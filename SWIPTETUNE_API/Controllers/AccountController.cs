@@ -1,19 +1,18 @@
 ﻿using MimeKit;
-using System.Net;
+using System.Text;
 using Repository.Repo;
 using MailKit.Security;
 using Repository.Interface;
-using Newtonsoft.Json.Linq;
+using DataAccess.Interface;
 using BusinessObject.Models;
-using Microsoft.VisualBasic;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using BusinessObject.Sub_Model;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
-using System.Collections.Specialized;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
 
 namespace SWIPTETUNE_API.Controllers
 {
@@ -26,14 +25,16 @@ namespace SWIPTETUNE_API.Controllers
         private readonly SignInManager<Account> _signInManager;
         private readonly UserManager<Account> _userManager;
         private readonly MailSettings mailSettings;
+        private readonly ISpotifyService spotifyService;
 
-        public AccountController(IConfiguration configuration,IAccountRepository accountRepository, SignInManager<Account> signInManager, UserManager<Account> userManager, IOptions<MailSettings> _mailSettings)
+        public AccountController(IConfiguration configuration,IAccountRepository accountRepository, SignInManager<Account> signInManager, UserManager<Account> userManager, IOptions<MailSettings> _mailSettings,ISpotifyService spotifyService)
         {
             _configuration = configuration;
             repository = accountRepository;
             _signInManager = signInManager;
             _userManager = userManager;
             mailSettings = _mailSettings.Value;
+            this.spotifyService = spotifyService;
            
         }
 
@@ -51,6 +52,7 @@ namespace SWIPTETUNE_API.Controllers
                 Address = model.Address,
                 Created_At = DateTime.UtcNow,
                 PhoneNumber = model.PhoneNumber,
+                SecurityStamp = Guid.NewGuid().ToString()
                 // Set other properties as needed
             };
 
@@ -66,12 +68,12 @@ namespace SWIPTETUNE_API.Controllers
 
                 // Send the verification email
                 await SendVerificationEmail(user.Email, confirmationLink);
-                return Ok();
+                return Ok("Create success");
             }
             else
             {
                 // User registration failed
-                return BadRequest(result.Errors);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Status = "Error", Message = "User creation failed! Please check user details and try again." });
             }
         }
 
@@ -79,17 +81,13 @@ namespace SWIPTETUNE_API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginModel loginModel) {
 
-            var result = await _signInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, false, lockoutOnFailure: false);
-            if (result.Succeeded)
+            var user = await _userManager.FindByEmailAsync(loginModel.Email);
+            if (user != null && await _userManager.CheckPasswordAsync(user, loginModel.Password))
             {
-                // Login successful
-                return Ok();
+                var token = GenerateJwtToken(user);
+                return Ok(new { token });
             }
-            else
-            {
-                // Login failed
-                return Unauthorized();
-            }
+            return Unauthorized();
         }
         [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmail(string userId, string token)
@@ -196,6 +194,71 @@ namespace SWIPTETUNE_API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [HttpGet]
+        [Route("GetAccountDetail")]
+        public async Task<IActionResult> GetAccountDetail(Guid id)
+        {
+            var account = new Account();
+            try
+            {
+                account = await repository.GetUserById(id);
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            return Ok(account);
+        }
+        private string GenerateJwtToken(Account user)
+        {
+            var claims = new[]
+            {
+                                       new Claim("Id", user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                _configuration["Jwt:Issuer"],
+                _configuration["Jwt:Audience"],
+                claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        [HttpPost]
+        [Route("AddAccountGenre")]
+        public async Task<IActionResult> AddAccountGenre(AccountGenreModel model)
+        {
+            try
+            {
+                  repository.AddAccountGenre(model);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to add");
+            }
+            return Ok("Add success");
+        }
+        [HttpPut]
+        [Route("UpdateAccountGenre")]
+        public async Task<IActionResult> UpdateAccountGenre(AccountGenreModel sub)
+        {
+            try
+            {
+                await repository.UpdateAccountGenre(sub);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to update");
+            }
+            return Ok("Update success");
         }
     }
 }

@@ -17,7 +17,7 @@ namespace BusinessObject.Models
 
         public string? artis_genres { get; set; }
 
-        public string artist_img_url { get; set; }
+        public string? artist_img_url { get; set; }
 
         public virtual ICollection<Song> Songs { get; set; }
 
@@ -28,15 +28,20 @@ namespace BusinessObject.Models
     {
         public static Artist ConvertFromArtistSpotify(ArtistSpotify artistSpotify)
         {
-            var artist = new Artist
+            if (artistSpotify.id != null && artistSpotify.name != null && artistSpotify.genres.Any() && artistSpotify.images.Any())
             {
-                ArtistId = artistSpotify.id,
-                Name = artistSpotify.name,
-                artis_genres = string.Join(", ", artistSpotify.genres),
-                artist_img_url = artistSpotify.images.FirstOrDefault().url,
-            };
+                var artist = new Artist
+                {
+                    ArtistId = artistSpotify.id,
+                    Name = artistSpotify.name,
+                    artis_genres = string.Join(", ", artistSpotify.genres),
+                    artist_img_url = artistSpotify.images.FirstOrDefault()?.url
+                };
 
-            return artist;
+                return artist;
+            }
+
+            return null;
         }
     }
 

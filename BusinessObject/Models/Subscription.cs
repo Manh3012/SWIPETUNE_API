@@ -14,9 +14,11 @@ namespace BusinessObject.Models
         public string SubscriptionName { get; set; }
         public string? Description { get; set; }
         public decimal? Price { get; set; }
-        public TimeSpan Duration { get; set; }
+        public int? Duration { get; set; }
 
         public virtual ICollection<AccountSubscription>? AccountSubscriptions { get; set; }
             
     }
 }
+
+ 

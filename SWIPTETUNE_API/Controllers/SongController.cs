@@ -26,31 +26,13 @@ namespace SWIPTETUNE_API.Controllers
             this.spotifyService = spotifyService;
         }
 
-        [HttpGet("token")]
-        public async Task<string> GetAccessToken()
-        {
-            var content = "";
-            try
-            {
-
-                var clientId = _configuration.GetValue<string>("SpotifyApi:ClientId");
-                var clientSecret = _configuration.GetValue<string>("SpotifyApi:ClientSecret");
-                content = await spotifyAccountService.GetToken(clientId, clientSecret);
-            }catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-
-
-            return content;
-        }
         [HttpGet("tracks/{trackId}")]
         public async Task<IActionResult> GetTrack(string trackId)
         {
             var track = new Track();
            try
             {
-                var accessToken= await GetAccessToken();
+                var accessToken= await spotifyService.GetAccessToken();
                 track = await spotifyService.GetSongs(trackId, accessToken);
             }catch (Exception ex)
             {

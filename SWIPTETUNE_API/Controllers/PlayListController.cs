@@ -1,4 +1,5 @@
-﻿using DataAccess.Service;
+﻿using BusinessObject;
+using DataAccess.Service;
 using DataAccess.Interface;
 using Repository.Interface;
 using System.Globalization;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using BusinessObject.Sub_Model;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace SWIPTETUNE_API.Controllers
 {
@@ -21,24 +23,28 @@ namespace SWIPTETUNE_API.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IPlayListRepository playListRepository;
-        public PlayListController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService,IPlayListRepository playListRepository)
+        private readonly SWIPETUNEDbContext _context;
+        private readonly IArtistRepository artistRepository; 
+        public PlayListController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService,IPlayListRepository playListRepository,SWIPETUNEDbContext _context,IArtistRepository artistRepository)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             this.spotifyAccountService = spotifyAccountService;
             this.spotifyService = spotifyService;
             this.playListRepository = playListRepository;
+            this._context = _context;
+            this.artistRepository = artistRepository;
         }
 
         [HttpPost]
-        [Route("createPlaylist")]
+        [Route("CreatePlaylist")]
 
-        public async Task<IActionResult> CreatePlayList(Playlist playlist,string accessToken)
+        public async Task<IActionResult> CreatePlayList(Playlist playlist)
         {
             var msg = "";
             try
             {
-                await spotifyService.CreatePlaylist(playlist, accessToken);
+                playListRepository.CreatePlayList(playlist);
                 msg = "Create success";
             }catch (Exception ex)
             {
@@ -47,6 +53,7 @@ namespace SWIPTETUNE_API.Controllers
             return Ok(msg);
         }
         [HttpGet]
+        [Route("GetProfileId")]
         public async Task<IActionResult> GetUserPlayList(string accessToken)
         {
             var msg = "";
@@ -57,7 +64,10 @@ namespace SWIPTETUNE_API.Controllers
             { 
                 msg=ex.Message;
             }
-            return Ok(msg);
+            return Ok(new
+            {
+                UserProfileId =   msg
+            });
         }
 
         [HttpGet]
@@ -85,9 +95,11 @@ namespace SWIPTETUNE_API.Controllers
             }
         }
 
-        [HttpPost("{playlistId}/{trackId}")]
-        public async Task<IActionResult> AddTrackToPlaylist(string trackId, string playlistId, string accessToken)
+        [HttpPost]
+        [Route("AddTrackToPlaylist/{playlistId}")]
+        public async Task<IActionResult> AddTrackToPlaylist(List<string> trackIds, string playlistId,int position)
         {
+            string accessToken = await spotifyService.GetAccessToken();
             try
             {
                 // Validate and authenticate the user's access token
@@ -95,30 +107,66 @@ namespace SWIPTETUNE_API.Controllers
                 {
                     return BadRequest("Playlist ID is missing.");
                 }
-                else if (string.IsNullOrEmpty(trackId))
+                foreach (var trackId in trackIds)
                 {
-                    return BadRequest("Track ID is missing.");
-                }
-                bool isAdded = await spotifyService.AddTrackToPlaylist(trackId, playlistId, accessToken);
+                    PlaylistSong playlistSong = new PlaylistSong
+                    {
+                        PlaylistId = playListRepository.GetPlaylistId(playlistId),
+                        added_at = DateTime.Now,
+                        position = position + 1,
+                        SongId = trackId
+                    };
+                    var songDetails = await spotifyService.GetSongs(trackId, accessToken);
+                    int durationMs = songDetails.duration_ms;
+                    TimeSpan duration = TimeSpan.FromMilliseconds(durationMs);
+                    Song song = new Song
+                    {
+                        SongId = trackId,
+                        Song_title = songDetails.name,
+                        ArtistId = songDetails.artists.FirstOrDefault().id,
+                        Duration = duration,
+                        ReleaseDate = DateTime.Parse(songDetails.album.release_date),
+                        song_img_url = songDetails.album.images.FirstOrDefault()?.url,
+                    };
+                    if (await artistRepository.GetArtistById(song.ArtistId) == null)
+                    {
+                        var artistSpotify = await spotifyService.SearchArtists(song.ArtistId, accessToken);
+                        List<Artist> artist = new List<Artist>();
+                        Artist artist1 = ArtistConverter.ConvertFromArtistSpotify(artistSpotify);
+                        artist.Add(artist1);
+                         artistRepository.AddArtist(artist);
+                      
+                            await _context.Songs.AddAsync(song);
+                            await _context.SaveChangesAsync();
+                            playListRepository.AddTrackToPlaylist(playlistSong);
+                        }else if (await _context.Songs.SingleOrDefaultAsync(x => x.SongId == song.SongId) == null)
 
-                if (isAdded)
-                {
-                    return Ok("Track added to playlist successfully.");
-                }
-                else
-                {
-                    return BadRequest("Failed to add track to playlist.");
+                    {
+                        await _context.Songs.AddAsync(song);
+                        await _context.SaveChangesAsync();
+                        playListRepository.AddTrackToPlaylist(playlistSong);
+                    }
+                    else if (await _context.Songs.SingleOrDefaultAsync(x => x.SongId == song.SongId) != null)
+                    {
+                        playListRepository.AddTrackToPlaylist(playlistSong);
+                    }
+                    else
+                    {
+                        return BadRequest("Already exist the song");
+                    }
                 }
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while adding track to playlist: {ex.Message}");
             }
+            return Ok();
         }
         [HttpGet]
         [Route("recommendations")]
-        public async Task<IActionResult> GetRecommendation (string artisId,[FromQuery]List<string> genres,string trackId,string accessToken)
+        public async Task<IActionResult> GetRecommendation (string artisId,[FromQuery]List<string> genres,string trackId)
         {
+            var accessToken = await spotifyService.GetAccessToken();
             var listSongs = new List<Song>();
             try
             {
@@ -132,6 +180,44 @@ namespace SWIPTETUNE_API.Controllers
                 throw new Exception("Cant get songs");
             }
             return Ok(listSongs);
+        }
+        [HttpGet]
+        [Route("GetPlaylistSong")]
+        public async Task<IActionResult> GetPlaylistSong(string playlistId)
+        {
+            var playlist = playListRepository.GetPlaylistSong(playlistId);
+            if(playlist==null)
+            {
+                return BadRequest("Playlist doesnt exist");
+            }
+            return Ok(playlist);
+        }
+        /// <summary>
+        ///  This is api to sync playlist from database to spotify
+        /// </summary>
+        /// <param name="playlist">playlist</param>
+        /// <param name="accessToken">accessToken</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        [HttpPost]
+        [Route("SyncPlaylist")]
+        public async Task<IActionResult> SyncPlaylist(Playlist playlist, string accessToken)
+        {
+            bool isAdded=false;
+            try
+            {
+                isAdded =await spotifyService.SyncPlaylist(playlist, accessToken);
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+          if(isAdded)
+            {
+                return Ok("Sync completed");
+            }else
+            {
+                return BadRequest("Sync failed");
+            }
         }
     }
 }

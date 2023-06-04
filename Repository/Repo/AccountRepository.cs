@@ -22,5 +22,7 @@ namespace Repository.Repo
 
         public async Task<Account> GetUserById(Guid id)=>await accountDAO.GetUserByid(id);
         public void UpdateProfile(Account account)=> accountDAO.UpdateProfile(account);
+        public void AddAccountGenre(AccountGenreModel model)=>accountDAO.AddAccountGenre(model);
+        public async Task<AccountGenre> UpdateAccountGenre(AccountGenreModel model )=>await accountDAO.UpdateAccountGenre(model);
     }
 }

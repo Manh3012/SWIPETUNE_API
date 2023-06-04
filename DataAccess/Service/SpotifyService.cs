@@ -142,7 +142,8 @@ namespace DataAccess.Service
                     Song_title = track.name,
                     Duration = TimeSpan.FromMilliseconds(track.duration_ms),
                     ReleaseDate = releaseDate,
-                    song_img_url = track.album.images[0].url
+                    song_img_url = track.album.images[0].url,
+
                 };
 
                 songs.Add(song);
@@ -200,7 +201,7 @@ namespace DataAccess.Service
 
 
         }
-        public async Task<bool> AddTrackToPlaylist(string trackId, string playlistId, string accessToken)
+        public async Task<bool> AddTrackToPlaylist(List<string> trackIds , string playlistId,int position, string accessToken)
         {
             var apiUrl = $"playlists/{playlistId}/tracks";
 
@@ -209,8 +210,8 @@ namespace DataAccess.Service
 
             var requestBody = new
             {
-                uris = new List<string> { $"spotify:track:{trackId}" },
-                position = 0
+                uris = trackIds.ConvertAll(id => $"spotify:track:{id}"),
+                position = position
             };
 
             var json = JsonConvert.SerializeObject(requestBody);
@@ -323,6 +324,67 @@ namespace DataAccess.Service
             {
                 return new List<Song>();
             }
+        }
+        public async Task<bool> SyncPlaylist(Playlist Createplaylist, string accessToken)
+        {
+            var user_id = await GetUserProfile(accessToken);
+            var endpoint = $"users/{user_id}/playlists";
+            CreatedPlaylist createPlaylistRequest = new CreatedPlaylist
+            {
+                name = Createplaylist.Name,
+                description = "",
+                _public = Createplaylist.isPublic
+            };
+
+            var json = System.Text.Json.JsonSerializer.Serialize(createPlaylistRequest);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await _httpClient.PostAsync(endpoint, content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to create playlist. Error: {responseContent}");
+            }
+
+            var playlist = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(responseContent);
+            var playlistId = playlist.id.ToString();
+            List<string> songs= _WIPETUNEDbContext.PlaylistSongs.Where(ps => ps.PlaylistId == Createplaylist.PlaylistId)
+            .Select(ps => ps.SongId)
+            .ToList();
+            var apiUrl = $"playlists/{playlistId}/tracks";
+
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+
+            var requestBody = new
+            {
+                uris = songs.ConvertAll(id => $"spotify:track:{id}"),
+            };
+
+            var json1 = JsonConvert.SerializeObject(requestBody);
+            var content1 = new StringContent(json1, Encoding.UTF8, "application/json");
+
+            var response1 = await _httpClient.PostAsync(apiUrl, content1);
+            try
+            {
+                SyncedPlaylist syncedPlaylist = new SyncedPlaylist
+                {
+                    AccountId = (Guid)Createplaylist.AccountId,
+                    last_synced_at = DateTime.UtcNow,
+                    PlaylistId = Createplaylist.PlaylistId,
+                    spotify_playlist_ID = playlistId
+                };
+                await _WIPETUNEDbContext.SyncedPlaylists.AddAsync(syncedPlaylist);
+                await _WIPETUNEDbContext.SaveChangesAsync();
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            
+            return response1.IsSuccessStatusCode;
         }
     }
 }
