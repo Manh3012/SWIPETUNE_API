@@ -260,5 +260,33 @@ namespace SWIPTETUNE_API.Controllers
             }
             return Ok("Update success");
         }
+        [HttpPost]
+        [Route("AddAccountArtist")]
+        public async Task<IActionResult> AddAccountArtist(AccountArtistModel model)
+        {
+            try
+            {
+                repository.AddAccountArtist(model);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to add");
+            }
+            return Ok("Add success");
+        }
+        [HttpPut]
+        [Route("UpdateAccountArtist")]
+        public async Task<IActionResult> UpdateAccountArtist(AccountArtistModel sub)
+        {
+            try
+            {
+                await repository.UpdateAccountArtist(sub);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to update");
+            }
+            return Ok("Update success");
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using BusinessObject;
+using DataAccess.DAO;
 using Repository.Repo;
 using DataAccess.Service;
 using DataAccess.Interface;
@@ -55,6 +56,7 @@ builder.Services.AddScoped<IPlayListRepository, PlayListRepository>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IArtistRepository, ArtistRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+
 
 
 

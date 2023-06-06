@@ -3,6 +3,7 @@ using DataAccess.Service;
 using DataAccess.Interface;
 using Repository.Interface;
 using System.Globalization;
+using System.Globalization;
 using BusinessObject.Models;
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Mvc;
@@ -24,8 +25,9 @@ namespace SWIPTETUNE_API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IPlayListRepository playListRepository;
         private readonly SWIPETUNEDbContext _context;
-        private readonly IArtistRepository artistRepository; 
-        public PlayListController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService,IPlayListRepository playListRepository,SWIPETUNEDbContext _context,IArtistRepository artistRepository)
+        private readonly IArtistRepository artistRepository;
+        private readonly IAccountRepository accountRepository;
+        public PlayListController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService,IPlayListRepository playListRepository, SWIPETUNEDbContext _context, IArtistRepository artistRepository, IAccountRepository accountRepository)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
@@ -34,16 +36,26 @@ namespace SWIPTETUNE_API.Controllers
             this.playListRepository = playListRepository;
             this._context = _context;
             this.artistRepository = artistRepository;
+            this.accountRepository = accountRepository;
         }
 
         [HttpPost]
         [Route("CreatePlaylist")]
 
-        public async Task<IActionResult> CreatePlayList(Playlist playlist)
+        public async Task<IActionResult> CreatePlayList(PlaylistModel playlist1)
         {
             var msg = "";
             try
             {
+                var playlist = new Playlist {
+                    PlaylistId = GenerateRandomString(22),
+                    AccountId = playlist1.AccountId,
+                    Name= playlist1.Name,
+                    Created= DateTime.Now,
+                    playlist_img_url = playlist1.playlist_img_url,
+                    isPublic = playlist1.isPublic
+                };
+
                 playListRepository.CreatePlayList(playlist);
                 msg = "Create success";
             }catch (Exception ex)
@@ -164,17 +176,14 @@ namespace SWIPTETUNE_API.Controllers
         }
         [HttpGet]
         [Route("recommendations")]
-        public async Task<IActionResult> GetRecommendation (string artisId,[FromQuery]List<string> genres,string trackId)
+        public async Task<IActionResult> GetRecommendation (Guid accountId)
         {
             var accessToken = await spotifyService.GetAccessToken();
             var listSongs = new List<Song>();
             try
             {
-                if (string.IsNullOrEmpty(artisId)|| string.IsNullOrEmpty(trackId))
-                {
-                    return BadRequest("Missing artisId or track");
-                }
-                listSongs= await spotifyService.GetRecommendation(artisId, genres, trackId, accessToken);
+                
+                listSongs= await spotifyService.GetRecommendation(accountId, accessToken);
             }catch(Exception ex)
             {
                 throw new Exception("Cant get songs");
@@ -218,6 +227,16 @@ namespace SWIPTETUNE_API.Controllers
             {
                 return BadRequest("Sync failed");
             }
+        }
+
+        public static string GenerateRandomString(int length)
+        {
+            Random random = new Random();
+            string letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            string randomString = new string(Enumerable.Repeat(letters, length)
+                                              .Select(s => s[random.Next(s.Length)])
+                                              .ToArray());
+            return randomString;
         }
     }
 }

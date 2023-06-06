@@ -27,6 +27,8 @@ namespace BusinessObject.Models
         }
         public virtual ICollection<AccountGenre>? AccountGenres { get; set; }
         public virtual ICollection<AccountSubscription>? AccountSubscriptions { get; set; }
+        public virtual ICollection<AccountArtist>? AccountArtists { get; set; }
+
 
 
     }

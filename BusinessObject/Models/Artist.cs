@@ -20,6 +20,8 @@ namespace BusinessObject.Models
         public string? artist_img_url { get; set; }
 
         public virtual ICollection<Song> Songs { get; set; }
+        public virtual ICollection<AccountArtist>? AccountArtists { get; set; }
+
 
 
     }

@@ -1,11 +1,14 @@
 ﻿using System.Text;
 using BusinessObject;
+using DataAccess.DAO;
 using Newtonsoft.Json;
 using DataAccess.Interface;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 using BusinessObject.Models;
 using System.Net.Http.Headers;
 using BusinessObject.Sub_Model;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace DataAccess.Service
@@ -289,16 +292,31 @@ namespace DataAccess.Service
         }
 
 
-        public async Task<List<Song>> GetRecommendation(string artisId, List<string> genres, string trackId, string accessToken)
+        public async Task<List<Song>> GetRecommendation(Guid accountId, string accessToken)
         {
+            var existAccount = await _WIPETUNEDbContext.Accounts
+                            .Include(x => x.AccountArtists)
+                            .ThenInclude(x => x.Artist)
+                            .Include(x => x.AccountSubscriptions)
+                            .ThenInclude(x => x.Subscription)
+                            .Include(X => X.Playlists)
+                            .ThenInclude(X => X.PlaylistSongs)
+                            .Include(x => x.AccountGenres)
+                            .ThenInclude(x => x.Genre)
+
+                            .SingleOrDefaultAsync(x => x.Id == accountId);
+            if (existAccount == null)
+            {
+                throw new Exception("No account match");
+            }
             var listSongs = new List<Song>();
             var apiUrl = "recommendations";
             var queryParams = new List<string>
-    {
-        $"seed_artists={Uri.EscapeDataString(artisId)}",
-        $"seed_genres={Uri.EscapeDataString(string.Join(",", genres))}",
-        $"seed_tracks={Uri.EscapeDataString(trackId)}"
-    };
+            {
+                $"seed_artists={Uri.EscapeDataString(string.Join(",", existAccount.AccountArtists.Select(x => x.ArtistId).ToList()))}",
+                $"seed_genres={Uri.EscapeDataString(string.Join(",", existAccount.AccountGenres.Select(x => x.Genre.Name)))}",
+                "min_popularity=50", // Optional: Adjust the popularity threshold as needed
+            };
             var requestUrl = $"{apiUrl}?{string.Join("&", queryParams)}";
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
@@ -311,13 +329,20 @@ namespace DataAccess.Service
                 var tracks = JObject.Parse(responseContent)["tracks"].ToObject<List<Track>>();
                 var songs = tracks.Select(track => new Song
                 {
-                    SongId = trackId,
+                   SongId = track.id,
                     Song_title = track.name,
-                    ArtistId = track.artists.FirstOrDefault().id,
+                    ArtistId = track.artists.FirstOrDefault()?.id,
                     Duration = TimeSpan.FromSeconds(track.duration_ms),
-                    ReleaseDate = DateTime.Parse(track.album.release_date),
+                    ReleaseDate = DateTime.TryParseExact(track.album.release_date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate) ? parsedDate : DateTime.MinValue,
                     song_img_url = track.album.images.FirstOrDefault()?.url,
+                    
                 }).ToList();
+                foreach (var song in songs)
+                {
+                    var artistSpotify = await SearchArtists(song.ArtistId, accessToken);
+                    Artist artist = ArtistConverter.ConvertFromArtistSpotify(artistSpotify);
+                    song.Artist = artist;
+                }
                 return songs;
             }
             else

@@ -10,7 +10,6 @@ namespace BusinessObject.Models
         public string SongId { get; set; }
 
         public string? ArtistId { get; set; }
-        [JsonIgnore]
         public virtual Artist? Artist { get; set; }
         [JsonIgnore]
         public int? GenreId { get; set; }

@@ -38,6 +38,8 @@ namespace BusinessObject
         public virtual DbSet<Subscription> Subscriptions { get; set; }
         public virtual DbSet<SyncedPlaylist> SyncedPlaylists { get; set; }
         public virtual DbSet<AccountGenre> AccountGenre { get; set; }
+        public virtual DbSet<AccountArtist> AccountArtist { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -24,5 +24,7 @@ namespace Repository.Repo
         public void UpdateProfile(Account account)=> accountDAO.UpdateProfile(account);
         public void AddAccountGenre(AccountGenreModel model)=>accountDAO.AddAccountGenre(model);
         public async Task<AccountGenre> UpdateAccountGenre(AccountGenreModel model )=>await accountDAO.UpdateAccountGenre(model);
+        public void AddAccountArtist(AccountArtistModel model) => accountDAO.AddAccountArtist(model);
+        public async Task<AccountArtist> UpdateAccountArtist(AccountArtistModel model) => await accountDAO.UpdateAccountArtist(model);
     }
 }

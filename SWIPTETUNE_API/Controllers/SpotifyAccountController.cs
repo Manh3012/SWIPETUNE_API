@@ -20,7 +20,7 @@ namespace SWIPTETUNE_API.Controllers
         private readonly HttpClient _httpClient;
 
         private readonly IConfiguration _configuration;
-        private const string RedirectUri = "http://18.141.188.211:7049/api/SpotifyAccount/callback";
+        private const string RedirectUri = "https://localhost:7049/api/SpotifyAccount/login";
         private const string Scopes = "playlist-modify-public user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-private";
         public SpotifyAccountController(HttpClient _httpClient, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService)
         {
@@ -30,34 +30,38 @@ namespace SWIPTETUNE_API.Controllers
             this.spotifyService = spotifyService;
         }
         [HttpGet("login")]
-        public string LoginWithSpotify()
+        public async Task<IActionResult> LoginWithSpotify(string? code)
         {
-            var clientId = _configuration.GetValue<string>("SpotifyApi:ClientId");
-            // Construct the Spotify authorization URL
-            var authUrl = $"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri={RedirectUri}&scope={Scopes}";
-
-            return authUrl;
-        }
-        [HttpGet]
-        [Route("callback")]
-        public async Task<IActionResult> Callback(string code)
-        {
-            var httpClient = new HttpClient();
-            var requestBody = new FormUrlEncodedContent(new[]
+            if (string.IsNullOrEmpty(code))
             {
+                // No authorization code provided, redirect the user to Spotify login page
+                var clientId = _configuration.GetValue<string>("SpotifyApi:ClientId");
+                // Construct the Spotify authorization URL
+                var authUrl = $"https://accounts.spotify.com/authorize?client_id={clientId}&response_type=code&redirect_uri={RedirectUri}&scope={Scopes}";
+
+                return Ok(authUrl);
+            }
+            else
+            {
+                // Authorization code is provided, exchange it for an access token
+                var httpClient = new HttpClient();
+                var requestBody = new FormUrlEncodedContent(new[]
+                {
             new KeyValuePair<string, string>("client_id", _configuration.GetValue<string>("SpotifyApi:ClientId")),
             new KeyValuePair<string, string>("client_secret", _configuration.GetValue<string>("SpotifyApi:ClientSecret")),
             new KeyValuePair<string, string>("grant_type", "authorization_code"),
             new KeyValuePair<string, string>("code", code),
             new KeyValuePair<string, string>("redirect_uri", RedirectUri)
         });
-            var response = await httpClient.PostAsync("https://accounts.spotify.com/api/token", requestBody);
-            var responseContent = await response.Content.ReadAsStringAsync();
 
-            var accessToken = JObject.Parse(responseContent)["access_token"].ToString();
-            return Ok(accessToken);
+                var response = await httpClient.PostAsync("https://accounts.spotify.com/api/token", requestBody);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                var accessToken = JObject.Parse(responseContent)["access_token"].ToString();
+                return Ok(new { access_token = accessToken });
+            }
         }
-    }
 
     }
 
+}
