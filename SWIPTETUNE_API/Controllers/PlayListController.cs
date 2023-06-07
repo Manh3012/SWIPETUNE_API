@@ -108,32 +108,35 @@ namespace SWIPTETUNE_API.Controllers
         }
 
         [HttpPost]
-        [Route("AddTrackToPlaylist/{playlistId}")]
-        public async Task<IActionResult> AddTrackToPlaylist(List<string> trackIds, string playlistId,int position)
+        [Route("AddTrackToPlaylist")]
+        public async Task<IActionResult> AddTrackToPlaylist(string trackIds, [FromQuery] List<string> playlistIds,int position)
         {
             string accessToken = await spotifyService.GetAccessToken();
             try
             {
                 // Validate and authenticate the user's access token
-                if (string.IsNullOrEmpty(playlistId))
+                if (playlistIds.Count == 0)
                 {
-                    return BadRequest("Playlist ID is missing.");
+                    return BadRequest("Add playlistId to add track");
+                }if(string.IsNullOrEmpty(trackIds))
+                {
+                    return BadRequest("Add SongId to add to playlist");
                 }
-                foreach (var trackId in trackIds)
+                foreach (var playlistId in playlistIds)
                 {
                     PlaylistSong playlistSong = new PlaylistSong
                     {
                         PlaylistId = playListRepository.GetPlaylistId(playlistId),
                         added_at = DateTime.Now,
-                        position = position + 1,
-                        SongId = trackId
+                        position = position,
+                        SongId = trackIds
                     };
-                    var songDetails = await spotifyService.GetSongs(trackId, accessToken);
+                    var songDetails = await spotifyService.GetSongs(trackIds, accessToken);
                     int durationMs = songDetails.duration_ms;
                     TimeSpan duration = TimeSpan.FromMilliseconds(durationMs);
                     Song song = new Song
                     {
-                        SongId = trackId,
+                        SongId = trackIds,
                         Song_title = songDetails.name,
                         ArtistId = songDetails.artists.FirstOrDefault().id,
                         Duration = duration,
@@ -146,12 +149,13 @@ namespace SWIPTETUNE_API.Controllers
                         List<Artist> artist = new List<Artist>();
                         Artist artist1 = ArtistConverter.ConvertFromArtistSpotify(artistSpotify);
                         artist.Add(artist1);
-                         artistRepository.AddArtist(artist);
-                      
-                            await _context.Songs.AddAsync(song);
-                            await _context.SaveChangesAsync();
-                            playListRepository.AddTrackToPlaylist(playlistSong);
-                        }else if (await _context.Songs.SingleOrDefaultAsync(x => x.SongId == song.SongId) == null)
+                        artistRepository.AddArtist(artist);
+
+                        await _context.Songs.AddAsync(song);
+                        await _context.SaveChangesAsync();
+                        playListRepository.AddTrackToPlaylist(playlistSong);
+                    }
+                    else if (await _context.Songs.SingleOrDefaultAsync(x => x.SongId == song.SongId) == null)
 
                     {
                         await _context.Songs.AddAsync(song);
@@ -166,13 +170,14 @@ namespace SWIPTETUNE_API.Controllers
                     {
                         return BadRequest("Already exist the song");
                     }
+
                 }
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred while adding track to playlist: {ex.Message}");
             }
-            return Ok();
+            return Ok($"Add Song {trackIds} to playlists success");
         }
         [HttpGet]
         [Route("recommendations")]
@@ -229,6 +234,25 @@ namespace SWIPTETUNE_API.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetAccountPlaylist")]
+        public async Task<List<Playlist>> GetAccountPlaylist(Guid id)
+        {
+            List<Playlist> list = new List<Playlist>();
+            try
+            {
+                list = await _context.Playlists
+                    .Include(x=>x.PlaylistSongs)
+                    .ThenInclude(x=>x.Song)
+                    .Where(x=>x.AccountId == id)
+                    .OrderByDescending(x=>x.Created)
+                    .ToListAsync();
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+            return list;
+        }
         public static string GenerateRandomString(int length)
         {
             Random random = new Random();

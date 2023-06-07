@@ -315,7 +315,8 @@ namespace DataAccess.Service
             {
                 $"seed_artists={Uri.EscapeDataString(string.Join(",", existAccount.AccountArtists.Select(x => x.ArtistId).ToList()))}",
                 $"seed_genres={Uri.EscapeDataString(string.Join(",", existAccount.AccountGenres.Select(x => x.Genre.Name)))}",
-                "min_popularity=50", // Optional: Adjust the popularity threshold as needed
+                "min_popularity=59",
+                "max_popularity=100"
             };
             var requestUrl = $"{apiUrl}?{string.Join("&", queryParams)}";
             _httpClient.DefaultRequestHeaders.Clear();

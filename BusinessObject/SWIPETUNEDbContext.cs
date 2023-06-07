@@ -39,6 +39,7 @@ namespace BusinessObject
         public virtual DbSet<SyncedPlaylist> SyncedPlaylists { get; set; }
         public virtual DbSet<AccountGenre> AccountGenre { get; set; }
         public virtual DbSet<AccountArtist> AccountArtist { get; set; }
+        public virtual DbSet<SongFile> SongsFile { get; set; }
 
 
 

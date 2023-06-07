@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 
 namespace BusinessObject.Models
@@ -18,7 +19,7 @@ namespace BusinessObject.Models
         public string? playlist_img_url { get; set; }
 
         public bool isPublic { get; set; }
-
+        [JsonIgnore]
         public virtual Account? Account { get; set; }
         public ICollection<PlaylistSong>? PlaylistSongs { get; set; }
     }

@@ -20,7 +20,7 @@ namespace SWIPTETUNE_API.Controllers
         private readonly HttpClient _httpClient;
 
         private readonly IConfiguration _configuration;
-        private const string RedirectUri = "https://localhost:7049/api/SpotifyAccount/login";
+        private const string RedirectUri = "http://18.141.188.211:7049/api/SpotifyAccount/login";
         private const string Scopes = "playlist-modify-public user-read-private user-read-email playlist-read-collaborative playlist-read-private playlist-modify-private";
         public SpotifyAccountController(HttpClient _httpClient, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService)
         {
