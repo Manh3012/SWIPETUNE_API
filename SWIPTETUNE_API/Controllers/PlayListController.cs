@@ -199,12 +199,33 @@ namespace SWIPTETUNE_API.Controllers
         [Route("GetPlaylistSong")]
         public async Task<IActionResult> GetPlaylistSong(string playlistId)
         {
+            List<SongModel> songs = new List<SongModel>();
             var playlist = playListRepository.GetPlaylistSong(playlistId);
+            foreach (var song in playlist.PlaylistSongs.Where(x=>x.PlaylistId == playlistId).Select(x => x.Song))
+            {
+                var song1 = new SongModel
+                {
+                    SongId = song.SongId,
+                    Song_title = song.Song_title,
+                    song_img_url= song.song_img_url,
+                    ReleaseDate = song.ReleaseDate,
+                    Duration= song.Duration,
+                    ArtistId= song.ArtistId,
+                };
+                song1.Artist = new ArtistModel
+                {
+                    ArtistId = song.ArtistId,
+                    artist_img_url= song.Artist.artist_img_url,
+                    artis_genres= song.Artist.artis_genres,
+                    Name= song.Artist.Name,
+                };
+                songs.Add(song1);
+            }
             if(playlist==null)
             {
                 return BadRequest("Playlist doesnt exist");
             }
-            return Ok(playlist);
+            return Ok(songs);
         }
         /// <summary>
         ///  This is api to sync playlist from database to spotify

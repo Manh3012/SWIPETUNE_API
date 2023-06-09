@@ -2,6 +2,7 @@
 using BusinessObject;
 using DataAccess.DAO;
 using Newtonsoft.Json;
+using System.Net.Http;
 using DataAccess.Interface;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
@@ -185,21 +186,23 @@ namespace DataAccess.Service
         }
         public async Task<string> GetUserProfile(string accessToken)
         {
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-            var endpoint = "me";
-            var response = await _httpClient.GetAsync(endpoint);
-
-            if (!response.IsSuccessStatusCode)
+            var response = await _httpClient.GetAsync("https://api.spotify.com/v1/me");
+            if (response.IsSuccessStatusCode)
             {
-                throw new Exception($"Failed to retrieve user profile. Error: {response.StatusCode}");
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var userProfile = JsonConvert.DeserializeObject<UserProfile>(responseContent);
+
+                // Do something with the user profile
+                return userProfile.id;
             }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var userProfile = Newtonsoft.Json.JsonConvert.DeserializeObject<UserProfile>(responseContent);
-
-            return userProfile.id;
+            else
+            {
+                // Handle the error response
+                var errorResponseContent = await response.Content.ReadAsStringAsync();
+                throw new Exception(errorResponseContent);
+            }
 
 
 

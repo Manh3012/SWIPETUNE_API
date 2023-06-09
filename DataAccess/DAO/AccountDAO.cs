@@ -34,6 +34,7 @@ namespace DataAccess.DAO
                 .ThenInclude(X=>X.PlaylistSongs)
                 .Include(x=>x.AccountGenres)
                 .ThenInclude(x=>x.Genre)
+                .Include(x=>x.SyncedPlaylists)
 
                 .SingleOrDefaultAsync(x=>x.Id== id);
             if(account == null)

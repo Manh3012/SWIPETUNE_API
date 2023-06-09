@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BusinessObject.Migrations
 {
     [DbContext(typeof(SWIPETUNEDbContext))]
-    [Migration("20230606155729_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20230609164405_1")]
+    partial class _1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -96,6 +96,9 @@ namespace BusinessObject.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("isDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isFirstTime")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
@@ -661,15 +664,15 @@ namespace BusinessObject.Migrations
             modelBuilder.Entity("BusinessObject.Models.SyncedPlaylist", b =>
                 {
                     b.HasOne("BusinessObject.Models.Account", "Account")
-                        .WithMany()
+                        .WithMany("SyncedPlaylists")
                         .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Models.Playlist", "Playlist")
-                        .WithMany()
+                        .WithMany("SyncedPlaylistSongs")
                         .HasForeignKey("PlaylistId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Account");
@@ -737,6 +740,8 @@ namespace BusinessObject.Migrations
                     b.Navigation("AccountSubscriptions");
 
                     b.Navigation("Playlists");
+
+                    b.Navigation("SyncedPlaylists");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Artist", b =>
@@ -754,6 +759,8 @@ namespace BusinessObject.Migrations
             modelBuilder.Entity("BusinessObject.Models.Playlist", b =>
                 {
                     b.Navigation("PlaylistSongs");
+
+                    b.Navigation("SyncedPlaylistSongs");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Song", b =>

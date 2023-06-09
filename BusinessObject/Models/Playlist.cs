@@ -22,5 +22,6 @@ namespace BusinessObject.Models
         [JsonIgnore]
         public virtual Account? Account { get; set; }
         public ICollection<PlaylistSong>? PlaylistSongs { get; set; }
+        public ICollection<SyncedPlaylist>? SyncedPlaylistSongs { get;}
     }
 }

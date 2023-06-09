@@ -64,6 +64,7 @@ namespace DataAccess.DAO
             var playlist = context.Playlists
                 .Include(x=>x.PlaylistSongs)
                 .ThenInclude(x=>x.Song)
+                .ThenInclude(x=>x.Artist)
                 .FirstOrDefault(x=>x.PlaylistId == playlistId);
             return playlist;
         }

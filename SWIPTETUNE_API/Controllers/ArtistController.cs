@@ -1,4 +1,5 @@
-﻿using DataAccess.Interface;
+﻿using BusinessObject;
+using DataAccess.Interface;
 using Repository.Interface;
 using BusinessObject.Models;
 using BusinessObject.Sub_Model;
@@ -18,13 +19,15 @@ namespace SWIPTETUNE_API.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IArtistRepository artistRepository;
-        public ArtistController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService,IArtistRepository artistRepository)
+        private readonly SWIPETUNEDbContext context;
+        public ArtistController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ISpotifyAccountService spotifyAccountService, ISpotifyService spotifyService,IArtistRepository artistRepository,SWIPETUNEDbContext context)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             this.spotifyAccountService = spotifyAccountService;
             this.spotifyService = spotifyService;
             this.artistRepository = artistRepository;
+            this.context = context;
         }
 
         [HttpGet]
@@ -99,6 +102,18 @@ namespace SWIPTETUNE_API.Controllers
                 // Handle any exceptions
                 return StatusCode(500, $"Error adding artists to the database: {ex.Message}");
             }
+        }
+
+        [HttpGet]
+        [Route("GetListArtistInformation")]
+        public async Task<List<Artist>> GetListArtists()
+        {
+            var list = await context.Artists.ToListAsync();
+            if (list.Count == 0)
+            {
+                return new List<Artist>();
+            }
+            return list;
         }
     }
 }

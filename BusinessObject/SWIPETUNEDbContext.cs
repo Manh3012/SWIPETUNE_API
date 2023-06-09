@@ -46,17 +46,7 @@ namespace BusinessObject
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<SyncedPlaylist>()
-           .HasOne(sp => sp.Account)
-           .WithMany()
-           .HasForeignKey(sp => sp.AccountId)
-           .OnDelete(DeleteBehavior.NoAction); // Specify ON DELETE NO ACTION
-
-            modelBuilder.Entity<SyncedPlaylist>()
-                .HasOne(sp => sp.Playlist)
-                .WithMany()
-                .HasForeignKey(sp => sp.PlaylistId) 
-                .OnDelete(DeleteBehavior.NoAction);
+            
 
             modelBuilder.Entity<Account>().ToTable("Accounts");
             modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles");

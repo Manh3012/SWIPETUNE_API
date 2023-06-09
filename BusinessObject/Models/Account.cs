@@ -22,12 +22,14 @@ namespace BusinessObject.Models
         public DateTime Created_At { get; set; }
 
         public bool Status { get; set; }
+        public bool isFirstTime { get; set; }
 
         public virtual ICollection<Playlist>? Playlists { get; set;
         }
         public virtual ICollection<AccountGenre>? AccountGenres { get; set; }
         public virtual ICollection<AccountSubscription>? AccountSubscriptions { get; set; }
         public virtual ICollection<AccountArtist>? AccountArtists { get; set; }
+        public virtual ICollection<SyncedPlaylist>? SyncedPlaylists { get; set; }
 
 
 

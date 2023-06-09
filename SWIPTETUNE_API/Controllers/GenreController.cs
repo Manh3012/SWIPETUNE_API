@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BusinessObject;
+using Newtonsoft.Json;
 using DataAccess.Interface;
 using Repository.Interface;
 using Newtonsoft.Json.Linq;
@@ -16,12 +17,14 @@ namespace SWIPTETUNE_API.Controllers
         private readonly HttpClient _httpClient;
         private readonly ISpotifyService spotifyService;
         private readonly IGenreRepository genreRepository;
+        private readonly SWIPETUNEDbContext context;
 
-        public GenreController(HttpClient httpClient,ISpotifyService spotifyService,IGenreRepository genreRepository)
+        public GenreController(HttpClient httpClient,ISpotifyService spotifyService,IGenreRepository genreRepository,SWIPETUNEDbContext context)
         {
             _httpClient = httpClient;
             this.spotifyService = spotifyService;
             this.genreRepository = genreRepository;
+            this.context = context;
         }
         [HttpGet]
         public async Task<IActionResult> GetGenres()
@@ -75,6 +78,22 @@ namespace SWIPTETUNE_API.Controllers
             {
                 return StatusCode((int)response.StatusCode, response.ReasonPhrase);
             }
+        }
+
+        [HttpGet]
+        [Route("GetAllGenre")]
+        public async Task<List<Genre>> GettAll()
+        {
+            var list = new List<Genre>();
+            try
+            {
+                list= await context.Genres.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+            return list;
         }
     }
     }

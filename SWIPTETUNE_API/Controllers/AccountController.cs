@@ -1,5 +1,6 @@
 ﻿using MimeKit;
 using System.Text;
+using BusinessObject;
 using Repository.Repo;
 using MailKit.Security;
 using Repository.Interface;
@@ -26,8 +27,9 @@ namespace SWIPTETUNE_API.Controllers
         private readonly UserManager<Account> _userManager;
         private readonly MailSettings mailSettings;
         private readonly ISpotifyService spotifyService;
+        private readonly SWIPETUNEDbContext context;
 
-        public AccountController(IConfiguration configuration,IAccountRepository accountRepository, SignInManager<Account> signInManager, UserManager<Account> userManager, IOptions<MailSettings> _mailSettings,ISpotifyService spotifyService)
+        public AccountController(IConfiguration configuration, IAccountRepository accountRepository, SignInManager<Account> signInManager, UserManager<Account> userManager, IOptions<MailSettings> _mailSettings, ISpotifyService spotifyService, SWIPETUNEDbContext context)
         {
             _configuration = configuration;
             repository = accountRepository;
@@ -35,7 +37,8 @@ namespace SWIPTETUNE_API.Controllers
             _userManager = userManager;
             mailSettings = _mailSettings.Value;
             this.spotifyService = spotifyService;
-           
+            this.context= context;
+
         }
 
 
@@ -52,7 +55,9 @@ namespace SWIPTETUNE_API.Controllers
                 Address = model.Address,
                 Created_At = DateTime.UtcNow,
                 PhoneNumber = model.PhoneNumber,
-                SecurityStamp = Guid.NewGuid().ToString()
+                SecurityStamp = Guid.NewGuid().ToString(),
+                isFirstTime=true
+
                 // Set other properties as needed
             };
 
@@ -90,36 +95,36 @@ namespace SWIPTETUNE_API.Controllers
             return Unauthorized();
         }
         [HttpGet("confirm-email")]
-    public async Task<IActionResult> ConfirmEmail(string userId, string token)
-    {
-        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
         {
-            // Invalid user ID or token
-            return BadRequest();
-        }
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                // Invalid user ID or token
+                return BadRequest();
+            }
 
-        var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
-        {
-            // User not found
-            return NotFound();
-        }
+            if (user == null)
+            {
+                // User not found
+                return NotFound();
+            }
 
-        var result = await _userManager.ConfirmEmailAsync(user, token);
+            var result = await _userManager.ConfirmEmailAsync(user, token);
 
-        if (result.Succeeded)
-        {
-            user.Verified_At= DateTime.UtcNow;
-            await _userManager.UpdateAsync(user);
-            return Ok();
+            if (result.Succeeded)
+            {
+                user.Verified_At = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+                return Ok();
+            }
+            else
+            {
+                // Email confirmation failed
+                return BadRequest(result.Errors);
+            }
         }
-        else
-        {
-            // Email confirmation failed
-            return BadRequest(result.Errors);
-        }
-    }
         [HttpPost]
         [Route("logout")]
         public async Task<IActionResult> Logout()
@@ -162,7 +167,7 @@ namespace SWIPTETUNE_API.Controllers
                 var emailsavefile = string.Format(@"mailssave/{0}.eml", Guid.NewGuid());
                 await message.WriteToAsync(emailsavefile);
 
-               
+
             }
 
             smtp.Disconnect(true);
@@ -172,15 +177,15 @@ namespace SWIPTETUNE_API.Controllers
 
         [HttpPut]
         [Route("EditProfile")]
-        public async Task<IActionResult> EditProfile(Guid id,[FromBody] UpdateAccountModel updateAccountModel )
+        public async Task<IActionResult> EditProfile(Guid id, [FromBody] UpdateAccountModel updateAccountModel)
         {
             var msg = "";
             try
             {
                 var existed = await repository.GetUserById(id);
 
-               
-                    existed.Address = updateAccountModel.Address;
+
+                existed.Address = updateAccountModel.Address;
                 existed.DOB = updateAccountModel.DOB;
                 existed.Gender = updateAccountModel.Gender;
                 existed.PhoneNumber = updateAccountModel.PhoneNumber;
@@ -190,15 +195,28 @@ namespace SWIPTETUNE_API.Controllers
                 msg = "Update success";
                 return Ok(msg);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPut]
+        [Route("CheckLoginFirstTime/{accountId}")]
+        public async Task<IActionResult> UpdateFirstTimeLogin(Guid accountId)
+        {
+            var account= await repository.GetUserById(accountId);
+            if(account.isFirstTime ==true)
+            {
+                account.isFirstTime = false;
+            }
+            context.Accounts.Update(account);
+            await context.SaveChangesAsync();
+            return Ok(account);
+        }
 
         [HttpGet]
-        [Route("GetAccountDetail")]
-        public async Task<IActionResult> GetAccountDetail(Guid id)
+        [Route("GetAccountDetail/{id}")]
+        public async Task<IActionResult> GetAccountDetail([FromRoute]Guid id)
         {
             var account = new Account();
             try
@@ -215,6 +233,8 @@ namespace SWIPTETUNE_API.Controllers
             var claims = new[]
             {
                                        new Claim("Id", user.Id.ToString()),
+                                       new Claim("isFirstTime", user.isFirstTime.ToString(),ClaimValueTypes.Boolean),
+
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
@@ -234,16 +254,20 @@ namespace SWIPTETUNE_API.Controllers
         }
         [HttpPost]
         [Route("AddAccountGenre")]
-        public async Task<IActionResult> AddAccountGenre(AccountGenreModel model)
+        public async Task<IActionResult> AddAccountGenre(List<AccountGenreModel> model)
         {
-            try
-            {
-                  repository.AddAccountGenre(model);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to add");
-            }
+            
+           
+                foreach (var item in model)
+                {
+                try
+                {
+                    repository.AddAccountGenre(item);
+                }catch(Exception ex) {
+                    throw new Exception(ex.Message);
+                }
+
+                }
             return Ok("Add success");
         }
         [HttpPut]
@@ -262,15 +286,19 @@ namespace SWIPTETUNE_API.Controllers
         }
         [HttpPost]
         [Route("AddAccountArtist")]
-        public async Task<IActionResult> AddAccountArtist(AccountArtistModel model)
+        public async Task<IActionResult> AddAccountArtist(List<AccountArtistModel> model)
         {
-            try
+            foreach (var item in model)
             {
-                repository.AddAccountArtist(model);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to add");
+                try
+                {
+
+                    repository.AddAccountArtist(item);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Failed to add");
+                }
             }
             return Ok("Add success");
         }
