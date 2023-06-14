@@ -62,6 +62,7 @@ namespace DataAccess.DAO
 
             try
             {
+               
                 context.AccountGenre.Add(accountGenre);
                 context.SaveChanges();
 

@@ -10,20 +10,24 @@ namespace SWIPTETUNE_API.Controllers
     public class SubscriptionController : ControllerBase
     {
         private readonly ISubscriptionRepository subscriptionRepository;
+        private readonly IAccountRepository accountRepository;
 
-        public SubscriptionController(ISubscriptionRepository subscriptionRepository)
+        public SubscriptionController(ISubscriptionRepository subscriptionRepository, IAccountRepository accountRepository)
         {
             this.subscriptionRepository = subscriptionRepository;
+            this.accountRepository = accountRepository;
         }
 
         [HttpGet]
         [Route("GetSubscriptions")]
-        public async Task<IActionResult> GetAll() {
+        public async Task<IActionResult> GetAll()
+        {
             List<Subscription> list = new List<Subscription>();
             try
             {
-              list=  await subscriptionRepository.GetSubscriptions();
-            }catch(Exception ex)
+                list = await subscriptionRepository.GetSubscriptions();
+            }
+            catch (Exception ex)
             {
                 throw new Exception("Nothing to show");
             }
@@ -34,19 +38,20 @@ namespace SWIPTETUNE_API.Controllers
         [Route("DeleteSubscription")]
         public async Task<IActionResult> DeleteSubsciption(int id)
         {
-            var isDeleted= false;
+            var isDeleted = false;
             try
             {
-                isDeleted=subscriptionRepository.DeleteSubscription(id);
+                isDeleted = subscriptionRepository.DeleteSubscription(id);
             }
             catch (Exception ex)
             {
                 throw new Exception("Failed to delete");
             }
-            if(isDeleted)
+            if (isDeleted)
             {
                 return Ok("Delete Success");
-            }else
+            }
+            else
             {
                 return BadRequest("Failed to delete");
             }
@@ -79,6 +84,52 @@ namespace SWIPTETUNE_API.Controllers
                 throw new Exception("Failed to update");
             }
             return Ok();
+        }
+
+        [HttpPost]
+        [Route("SetAccountSubscriptionToFree/{id}")]
+        public async Task<IActionResult> AddAccountSub(Guid id)
+        {
+
+            try
+            {
+                var account = await accountRepository.GetUserById(id);
+                if (account == null)
+                {
+                    throw new Exception("Account does not exist");
+                }
+                Guid accountId = account.Id;
+                subscriptionRepository.AddAccountSubscription(accountId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok("Set to Free");
+
+
+        }
+        [HttpPut]
+        [Route("UpdateToPremium/{id}")]
+        public async Task<IActionResult> UpdateToPremium(Guid id)
+        {
+            try
+            {
+                var account = await accountRepository.GetUserById(id);
+                if (account == null)
+                {
+                    throw new Exception("Account does not exist");
+                }
+                Guid accountId = account.Id;
+                subscriptionRepository.UpdateToPremium(accountId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok("Set to Premium");
         }
     }
 }

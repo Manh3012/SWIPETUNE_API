@@ -5,6 +5,7 @@ using BusinessObject;
 using BusinessObject.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -70,6 +71,58 @@ namespace DataAccess.DAO
         public async Task<List<Subscription>> GetSubscriptions()
         {
             return await context.Subscriptions.ToListAsync();
+        }
+        public void AddAccountSubscription(Guid id)
+        {
+            string type = "FREE";
+        
+             AccountSubscription accountSubscription = new AccountSubscription
+            {
+
+                AccountID= id,
+                SubscriptionId = context.Subscriptions.SingleOrDefault(x=>x.SubscriptionName == "FREE")?.SubscriptionId
+                
+            };
+            try
+            {
+                context.AccountSubscriptions.Add(accountSubscription);
+                context.SaveChanges();
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        public async void UpdateToPremium(Guid id)
+        {
+            DateTime StartDate1 = DateTime.UtcNow;
+
+            string type = "Free";
+            
+            var account = context.AccountSubscriptions.SingleOrDefault(x => x.AccountID == id);
+
+            try
+            {
+                Subscription? subscription = context.AccountSubscriptions.Where(x => x.AccountID == id).Select(x => x.Subscription).SingleOrDefault();
+                if (subscription.SubscriptionName == type)
+                {
+
+                    account.AccountID = id;
+                    account.SubscriptionId = context.Subscriptions.SingleOrDefault(x => x.SubscriptionName == "Premium")?.SubscriptionId;
+                    account.StartDate = StartDate1;
+                    account.EndDate = StartDate1.AddDays(30);
+
+                    context.Entry<AccountSubscription>(account).State = EntityState.Modified;
+                    context.SaveChanges();
+                }else
+                {
+                    throw new Exception("Cant set to premium cause it's already premium");
+
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
     }
 }

@@ -22,5 +22,7 @@ namespace Repository.Repo
         public  bool DeleteSubscription(int id) => subscriptionDAO.DeleteSubscription(id);
         public async Task<Subscription> UpdateSubscription(Subscription sub)=>await subscriptionDAO.UpdateSubscription(sub);
         public async Task<List<Subscription>> GetSubscriptions()=>await subscriptionDAO.GetSubscriptions();
+        public void AddAccountSubscription(Guid id)=>subscriptionDAO.AddAccountSubscription(id);
+        public void UpdateToPremium(Guid id)=>subscriptionDAO.UpdateToPremium(id);
     }
 }

@@ -14,5 +14,7 @@ namespace Repository.Interface
         bool DeleteSubscription(int id);
         Task<Subscription> UpdateSubscription(Subscription sub);
         Task<List<Subscription>> GetSubscriptions();
+        void AddAccountSubscription(Guid id);
+        void UpdateToPremium(Guid id);
     }
 }

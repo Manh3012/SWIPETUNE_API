@@ -5,6 +5,7 @@ using Repository.Interface;
 using Newtonsoft.Json.Linq;
 using BusinessObject.Models;
 using Microsoft.AspNetCore.Mvc;
+using BusinessObject.Sub_Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,13 +19,15 @@ namespace SWIPTETUNE_API.Controllers
         private readonly ISpotifyService spotifyService;
         private readonly IGenreRepository genreRepository;
         private readonly SWIPETUNEDbContext context;
+        private readonly IAccountGenreRepository accountGenre;
 
-        public GenreController(HttpClient httpClient,ISpotifyService spotifyService,IGenreRepository genreRepository,SWIPETUNEDbContext context)
+        public GenreController(HttpClient httpClient, ISpotifyService spotifyService, IGenreRepository genreRepository, SWIPETUNEDbContext context, IAccountGenreRepository accountGenre)
         {
             _httpClient = httpClient;
             this.spotifyService = spotifyService;
             this.genreRepository = genreRepository;
             this.context = context;
+            this.accountGenre = accountGenre;
         }
         [HttpGet]
         public async Task<IActionResult> GetGenres()
@@ -87,7 +90,7 @@ namespace SWIPTETUNE_API.Controllers
             var list = new List<Genre>();
             try
             {
-                list= await context.Genres.ToListAsync();
+                list = await context.Genres.ToListAsync();
             }
             catch (Exception ex)
             {
@@ -95,6 +98,34 @@ namespace SWIPTETUNE_API.Controllers
             }
             return list;
         }
+
+        [HttpGet]
+        [Route("GetListAccountGenre/{accountId}")]
+        public async Task<List<GenreModel>> GetGenreAccount(Guid accountId)
+        {
+            var list = new List<GenreModel>();
+            var listgenre = new List<Genre>();
+            try
+            {
+                listgenre= await accountGenre.GetGenreFromAccount(accountId);
+                foreach(var genre in listgenre)
+                {
+                    var genreModel = new GenreModel
+                    { 
+                        GenreId= genre.GenreId,
+                        Name = genre.Name
+                    };  
+                    list.Add(genreModel);
+                }
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+            return list;
+        }
+
+
+
     }
-    }
+}
 

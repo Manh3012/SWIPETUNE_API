@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
+using static SpotifyAPI.Web.PlaylistRemoveItemsRequest;
 
 namespace SWIPTETUNE_API.Controllers
 {
@@ -56,7 +57,7 @@ namespace SWIPTETUNE_API.Controllers
                 Created_At = DateTime.UtcNow,
                 PhoneNumber = model.PhoneNumber,
                 SecurityStamp = Guid.NewGuid().ToString(),
-                isFirstTime=true
+                isFirstTime=true,
 
                 // Set other properties as needed
             };
@@ -256,18 +257,31 @@ namespace SWIPTETUNE_API.Controllers
         [Route("AddAccountGenre")]
         public async Task<IActionResult> AddAccountGenre(List<AccountGenreModel> model)
         {
-            
-           
-                foreach (var item in model)
+            if (context.AccountGenre.Select(x => x.AccountId).Count() > 0)
+            {
+                var accountIds = model.Select(item => item.AccountId).ToList();
+                List<AccountGenre> accountGenresToDelete = context.AccountGenre
+                    .Where(ag => accountIds.Contains(ag.AccountId))
+                    .ToList();
+
+                context.AccountGenre.RemoveRange(accountGenresToDelete);
+                context.SaveChanges();
+            }
+
+
+            foreach (var item in model)
                 {
-                try
-                {
-                    repository.AddAccountGenre(item);
-                }catch(Exception ex) {
-                    throw new Exception(ex.Message);
+               
+                    try
+                    {
+                        repository.AddAccountGenre(item);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
                 }
 
-                }
             return Ok("Add success");
         }
         [HttpPut]
