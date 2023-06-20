@@ -16,5 +16,7 @@ namespace Repository.Interface
         Task<List<Subscription>> GetSubscriptions();
         void AddAccountSubscription(Guid id);
         void UpdateToPremium(Guid id);
+        string GetSubscriptionName(Guid id);
+
     }
 }

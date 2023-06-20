@@ -75,12 +75,15 @@ namespace DataAccess.DAO
         public void AddAccountSubscription(Guid id)
         {
             string type = "FREE";
+            DateTime startDate  = DateTime.Now;
         
              AccountSubscription accountSubscription = new AccountSubscription
             {
 
                 AccountID= id,
-                SubscriptionId = context.Subscriptions.SingleOrDefault(x=>x.SubscriptionName == "FREE")?.SubscriptionId
+                SubscriptionId = context.Subscriptions.SingleOrDefault(x=>x.SubscriptionName == "FREE")?.SubscriptionId,
+                StartDate= startDate,
+                EndDate = startDate.AddDays(30),
                 
             };
             try
@@ -96,7 +99,7 @@ namespace DataAccess.DAO
         {
             DateTime StartDate1 = DateTime.UtcNow;
 
-            string type = "Free";
+            string type = "FREE";
             
             var account = context.AccountSubscriptions.SingleOrDefault(x => x.AccountID == id);
 
@@ -107,7 +110,7 @@ namespace DataAccess.DAO
                 {
 
                     account.AccountID = id;
-                    account.SubscriptionId = context.Subscriptions.SingleOrDefault(x => x.SubscriptionName == "Premium")?.SubscriptionId;
+                    account.SubscriptionId = context.Subscriptions.SingleOrDefault(x => x.SubscriptionName == "PREMIUM")?.SubscriptionId;
                     account.StartDate = StartDate1;
                     account.EndDate = StartDate1.AddDays(30);
 
@@ -123,6 +126,24 @@ namespace DataAccess.DAO
             {
                 throw new Exception(ex.Message);
             }
+        }
+
+        public string GetSubscriptionName(Guid id)
+        { 
+        
+                var user = context.AccountSubscriptions
+                .Include(x=>x.Subscription)
+                .SingleOrDefault(x=>x.AccountID == id);
+            string name = "";
+            if(user!=null)
+            {
+                name= user.Subscription.SubscriptionName;
+            }
+            if(name==null)
+            {
+                return name="";
+            }
+            return name;
         }
     }
 }

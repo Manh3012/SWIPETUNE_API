@@ -235,10 +235,11 @@ namespace SWIPTETUNE_API.Controllers
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         [HttpPost]
-        [Route("SyncPlaylist")]
-        public async Task<IActionResult> SyncPlaylist(Playlist playlist, string accessToken)
+        [Route("SyncPlaylist/{playlistId}")]
+        public async Task<IActionResult> SyncPlaylist(string playlistId, string accessToken)
         {
             bool isAdded=false;
+            Playlist playlist = playListRepository.GetPlaylistSong(playlistId);
             try
             {
                 isAdded =await spotifyService.SyncPlaylist(playlist, accessToken);

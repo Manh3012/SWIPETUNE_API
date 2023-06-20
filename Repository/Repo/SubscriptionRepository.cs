@@ -24,5 +24,6 @@ namespace Repository.Repo
         public async Task<List<Subscription>> GetSubscriptions()=>await subscriptionDAO.GetSubscriptions();
         public void AddAccountSubscription(Guid id)=>subscriptionDAO.AddAccountSubscription(id);
         public void UpdateToPremium(Guid id)=>subscriptionDAO.UpdateToPremium(id);
+        public string GetSubscriptionName(Guid id)=>subscriptionDAO.GetSubscriptionName(id);
     }
 }

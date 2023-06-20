@@ -29,8 +29,9 @@ namespace SWIPTETUNE_API.Controllers
         private readonly MailSettings mailSettings;
         private readonly ISpotifyService spotifyService;
         private readonly SWIPETUNEDbContext context;
+        private readonly ISubscriptionRepository subscriptionRepository;
 
-        public AccountController(IConfiguration configuration, IAccountRepository accountRepository, SignInManager<Account> signInManager, UserManager<Account> userManager, IOptions<MailSettings> _mailSettings, ISpotifyService spotifyService, SWIPETUNEDbContext context)
+        public AccountController(IConfiguration configuration, IAccountRepository accountRepository, SignInManager<Account> signInManager, UserManager<Account> userManager, IOptions<MailSettings> _mailSettings, ISpotifyService spotifyService, SWIPETUNEDbContext context, ISubscriptionRepository subscriptionRepository)
         {
             _configuration = configuration;
             repository = accountRepository;
@@ -38,8 +39,8 @@ namespace SWIPTETUNE_API.Controllers
             _userManager = userManager;
             mailSettings = _mailSettings.Value;
             this.spotifyService = spotifyService;
-            this.context= context;
-
+            this.context = context;
+            this.subscriptionRepository = subscriptionRepository;
         }
 
 
@@ -63,7 +64,13 @@ namespace SWIPTETUNE_API.Controllers
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
-
+            try
+            {
+                subscriptionRepository.AddAccountSubscription(user.Id);
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
             if (result.Succeeded)
             {
                 // User registration successful
@@ -231,10 +238,13 @@ namespace SWIPTETUNE_API.Controllers
         }
         private string GenerateJwtToken(Account user)
         {
+            string subname = subscriptionRepository.GetSubscriptionName(user.Id );
             var claims = new[]
             {
                                        new Claim("Id", user.Id.ToString()),
                                        new Claim("isFirstTime", user.isFirstTime.ToString(),ClaimValueTypes.Boolean),
+                                       new Claim("Subscription Name", subname),
+
 
                 new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
