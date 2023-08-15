@@ -96,6 +96,9 @@ namespace BusinessObject.Migrations
                     b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("isFirstTime")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -109,6 +112,53 @@ namespace BusinessObject.Migrations
                     b.ToTable("Accounts", (string)null);
                 });
 
+            modelBuilder.Entity("BusinessObject.Models.AccountArtist", b =>
+                {
+                    b.Property<int>("AccountArtistId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountArtistId"), 1L, 1);
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ArtistId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("AccountArtistId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("ArtistId");
+
+                    b.ToTable("AccountArtist");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.AccountGenre", b =>
+                {
+                    b.Property<int>("AccountGenreId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AccountGenreId"), 1L, 1);
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("GenreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AccountGenreId");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("AccountGenre");
+                });
+
             modelBuilder.Entity("BusinessObject.Models.AccountSubscription", b =>
                 {
                     b.Property<Guid>("AccountSubId")
@@ -118,10 +168,10 @@ namespace BusinessObject.Migrations
                     b.Property<Guid>("AccountID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("StartDate")
+                    b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("SubscriptionId")
@@ -149,7 +199,6 @@ namespace BusinessObject.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("artist_img_url")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ArtistId");
@@ -174,12 +223,7 @@ namespace BusinessObject.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("SongId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("GenreId");
-
-                    b.HasIndex("SongId");
 
                     b.ToTable("Genres");
                 });
@@ -214,7 +258,7 @@ namespace BusinessObject.Migrations
                     b.Property<string>("PlaylistId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("AccountId")
+                    b.Property<Guid?>("AccountId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("Created")
@@ -239,6 +283,12 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.PlaylistSong", b =>
                 {
+                    b.Property<int>("PlaylistSongId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlaylistSongId"), 1L, 1);
+
                     b.Property<string>("PlaylistId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -253,6 +303,8 @@ namespace BusinessObject.Migrations
                     b.Property<int>("position")
                         .HasColumnType("int");
 
+                    b.HasKey("PlaylistSongId");
+
                     b.HasIndex("PlaylistId");
 
                     b.HasIndex("SongId");
@@ -264,10 +316,6 @@ namespace BusinessObject.Migrations
                 {
                     b.Property<string>("SongId")
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ArtisId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ArtistId")
                         .HasColumnType("nvarchar(450)");
@@ -291,7 +339,29 @@ namespace BusinessObject.Migrations
 
                     b.HasIndex("ArtistId");
 
+                    b.HasIndex("GenreId");
+
                     b.ToTable("Songs");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.SongFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<byte[]>("FileData")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SongsFile");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Subscription", b =>
@@ -305,8 +375,8 @@ namespace BusinessObject.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -480,10 +550,48 @@ namespace BusinessObject.Migrations
                     b.ToTable("AccountsTokens", (string)null);
                 });
 
+            modelBuilder.Entity("BusinessObject.Models.AccountArtist", b =>
+                {
+                    b.HasOne("BusinessObject.Models.Account", "Account")
+                        .WithMany("AccountArtists")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Models.Artist", "Artist")
+                        .WithMany("AccountArtists")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Artist");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.AccountGenre", b =>
+                {
+                    b.HasOne("BusinessObject.Models.Account", "Account")
+                        .WithMany("AccountGenres")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Models.Genre", "Genre")
+                        .WithMany("AccountGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Genre");
+                });
+
             modelBuilder.Entity("BusinessObject.Models.AccountSubscription", b =>
                 {
                     b.HasOne("BusinessObject.Models.Account", "Account")
-                        .WithMany()
+                        .WithMany("AccountSubscriptions")
                         .HasForeignKey("AccountID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -495,13 +603,6 @@ namespace BusinessObject.Migrations
                     b.Navigation("Account");
 
                     b.Navigation("Subscription");
-                });
-
-            modelBuilder.Entity("BusinessObject.Models.Genre", b =>
-                {
-                    b.HasOne("BusinessObject.Models.Song", null)
-                        .WithMany("Genres")
-                        .HasForeignKey("SongId");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Payment", b =>
@@ -519,9 +620,7 @@ namespace BusinessObject.Migrations
                 {
                     b.HasOne("BusinessObject.Models.Account", "Account")
                         .WithMany("Playlists")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AccountId");
 
                     b.Navigation("Account");
                 });
@@ -529,13 +628,13 @@ namespace BusinessObject.Migrations
             modelBuilder.Entity("BusinessObject.Models.PlaylistSong", b =>
                 {
                     b.HasOne("BusinessObject.Models.Playlist", "Playlist")
-                        .WithMany()
+                        .WithMany("PlaylistSongs")
                         .HasForeignKey("PlaylistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Models.Song", "Song")
-                        .WithMany()
+                        .WithMany("PlaylistSongs")
                         .HasForeignKey("SongId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -547,23 +646,31 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Song", b =>
                 {
-                    b.HasOne("BusinessObject.Models.Artist", null)
+                    b.HasOne("BusinessObject.Models.Artist", "Artist")
                         .WithMany("Songs")
                         .HasForeignKey("ArtistId");
+
+                    b.HasOne("BusinessObject.Models.Genre", "Genres")
+                        .WithMany()
+                        .HasForeignKey("GenreId");
+
+                    b.Navigation("Artist");
+
+                    b.Navigation("Genres");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.SyncedPlaylist", b =>
                 {
                     b.HasOne("BusinessObject.Models.Account", "Account")
-                        .WithMany()
+                        .WithMany("SyncedPlaylists")
                         .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BusinessObject.Models.Playlist", "Playlist")
-                        .WithMany()
+                        .WithMany("SyncedPlaylistSongs")
                         .HasForeignKey("PlaylistId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Account");
@@ -624,17 +731,39 @@ namespace BusinessObject.Migrations
 
             modelBuilder.Entity("BusinessObject.Models.Account", b =>
                 {
+                    b.Navigation("AccountArtists");
+
+                    b.Navigation("AccountGenres");
+
+                    b.Navigation("AccountSubscriptions");
+
                     b.Navigation("Playlists");
+
+                    b.Navigation("SyncedPlaylists");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Artist", b =>
                 {
+                    b.Navigation("AccountArtists");
+
                     b.Navigation("Songs");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.Genre", b =>
+                {
+                    b.Navigation("AccountGenres");
+                });
+
+            modelBuilder.Entity("BusinessObject.Models.Playlist", b =>
+                {
+                    b.Navigation("PlaylistSongs");
+
+                    b.Navigation("SyncedPlaylistSongs");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Song", b =>
                 {
-                    b.Navigation("Genres");
+                    b.Navigation("PlaylistSongs");
                 });
 
             modelBuilder.Entity("BusinessObject.Models.Subscription", b =>

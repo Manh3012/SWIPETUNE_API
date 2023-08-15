@@ -15,8 +15,8 @@ namespace BusinessObject.Models
         public Guid AccountID { get; set; }
         public int? SubscriptionId { get; set; }
         public virtual Subscription Subscription { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public virtual Account Account { get; set; }
     }
 

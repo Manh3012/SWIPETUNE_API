@@ -14,7 +14,7 @@ namespace BusinessObject
 {
     public class SWIPETUNEDbContext : IdentityDbContext<Account,IdentityRole<Guid>,Guid>
     {
-        public SWIPETUNEDbContext(DbContextOptions<SWIPETUNEDbContext> options) : base(options) { }
+        public SWIPETUNEDbContext(){ }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -23,6 +23,7 @@ namespace BusinessObject
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             IConfiguration configuration = builder.Build();
             optionsBuilder.UseSqlServer(configuration.GetConnectionString("SWIPE_TUNEDB"));
+
 
         }
         public virtual DbSet<Account> Accounts { get; set; }
@@ -36,22 +37,16 @@ namespace BusinessObject
         public virtual DbSet<Song> Songs { get; set; }
         public virtual DbSet<Subscription> Subscriptions { get; set; }
         public virtual DbSet<SyncedPlaylist> SyncedPlaylists { get; set; }
+        public virtual DbSet<AccountGenre> AccountGenre { get; set; }
+        public virtual DbSet<AccountArtist> AccountArtist { get; set; }
+        public virtual DbSet<SongFile> SongsFile { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<PlaylistSong>().HasNoKey();
-            modelBuilder.Entity<SyncedPlaylist>()
-           .HasOne(sp => sp.Account)
-           .WithMany()
-           .HasForeignKey(sp => sp.AccountId)
-           .OnDelete(DeleteBehavior.NoAction); // Specify ON DELETE NO ACTION
-
-            modelBuilder.Entity<SyncedPlaylist>()
-                .HasOne(sp => sp.Playlist)
-                .WithMany()
-                .HasForeignKey(sp => sp.PlaylistId) 
-                .OnDelete(DeleteBehavior.NoAction);
+            
 
             modelBuilder.Entity<Account>().ToTable("Accounts");
             modelBuilder.Entity<IdentityRole<Guid>>().ToTable("Roles");
